@@ -126,7 +126,7 @@ public class SQLiteRepository {
         """);
     }
 
-    public static void fetchAllClasses() {
+    public static List<FEClass> fetchAllClasses() {
         try (Connection conn = DriverManager.getConnection(SQLITE_DB_FILE_PATH);
             Statement stmt = conn.createStatement()
         ) {
@@ -143,12 +143,13 @@ public class SQLiteRepository {
             }
             extractPromotions(allClasses, firstPromotions, secondPromotions);
             Main.CLASSES = allClasses;
+            return allClasses;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static void fetchAllCharacters(List<FEClass> allClasses) {
+    public static List<FECharacter> fetchAllCharacters(List<FEClass> allClasses) {
         try (Connection conn = DriverManager.getConnection(SQLITE_DB_FILE_PATH);
             Statement stmt = conn.createStatement()
         ) {
@@ -158,12 +159,13 @@ public class SQLiteRepository {
                 allCharacters.add(extractCharacter(rs, allClasses));
             }
             Main.CHARACTERS = allCharacters;
+            return allCharacters;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static void fetchAllWeapons() {
+    public static List<FEWeapon> fetchAllWeapons() {
         try (Connection conn = DriverManager.getConnection(SQLITE_DB_FILE_PATH);
             Statement stmt = conn.createStatement()
         ) {
@@ -173,6 +175,7 @@ public class SQLiteRepository {
                 allWeapons.add(extractWeapon(rs));
             }
             Main.WEAPONS = allWeapons;
+            return allWeapons;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

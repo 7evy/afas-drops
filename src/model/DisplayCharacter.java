@@ -1,6 +1,6 @@
 package model;
 
-public class DisplayCharacter {
+public class DisplayCharacter implements DisplayedObject {
     public FECharacter data;
     public FEClass secondClass;
     public FEClass thirdClass;

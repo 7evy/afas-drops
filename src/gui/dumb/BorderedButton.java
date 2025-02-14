@@ -1,4 +1,4 @@
-package gui;
+package gui.dumb;
 
 import javax.swing.JButton;
 import java.awt.BorderLayout;

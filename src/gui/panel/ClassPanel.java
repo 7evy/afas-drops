@@ -1,5 +1,9 @@
-package gui;
+package gui.panel;
 
+import gui.dumb.BorderedLabel;
+import gui.dumb.BorderedLabeledComboBox;
+import gui.dumb.BorderedLabeledSpinner;
+import gui.dumb.BorderedLabeledTextField;
 import model.FEClass;
 import model.Stats.Stat;
 import utils.ClassUtils;
@@ -7,11 +11,10 @@ import utils.ClassUtils;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
-import java.awt.GridLayout;
 import java.util.List;
 import java.util.Map;
 
-public class ClassPanel extends JPanel {
+public class ClassPanel extends CohesivePanel<FEClass> {
     private BorderedLabeledTextField nameField;
     private BorderedLabeledTextField tierField;
     private BorderedLabeledSpinner movementField;
@@ -23,12 +26,10 @@ public class ClassPanel extends JPanel {
     private Map<Stat, BorderedLabeledSpinner> bonusFields;
 
     public ClassPanel() {
-        super(new GridLayout(1, 2, 10, 10));
+        super(1, 2);
     }
 
-    public void fill(FEClass display) {
-        removeAll();
-
+    protected void fill(FEClass display) {
         JPanel nameTierAndCaps = new JPanel();
         nameTierAndCaps.setLayout(new BoxLayout(nameTierAndCaps, BoxLayout.Y_AXIS));
         JPanel promotionsAndBonuses = new JPanel();
@@ -73,16 +74,12 @@ public class ClassPanel extends JPanel {
 
         nameField.inner.setText(display.name);
         tierField.inner.setText(Integer.toString(display.tier));
-        tieActionListeners(display);
 
         add(nameTierAndCaps);
         add(promotionsAndBonuses);
-
-        revalidate();
-        repaint();
     }
 
-    private void tieActionListeners(FEClass display) {
+    protected void tieActionListeners(FEClass display) {
         nameField.addActionListener(() -> display.name = nameField.inner.getText());
 
         tierField.addActionListener(() -> {

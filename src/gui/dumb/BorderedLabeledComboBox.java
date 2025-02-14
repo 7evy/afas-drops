@@ -1,4 +1,4 @@
-package gui;
+package gui.dumb;
 
 import javax.swing.JComboBox;
 import javax.swing.JLabel;

@@ -19,8 +19,6 @@ public class Main {
         SwingUtilities.invokeLater(() -> {
             try {
                 SQLiteRepository.initDB();
-                GUI.actualizeClasses();
-                GUI.actualizeCharacters();
                 if (CLASSES.isEmpty()) {
                     SQLiteRepository.newClass();
                 }

@@ -1,5 +1,9 @@
-package gui;
+package gui.panel;
 
+import gui.dumb.BorderedLabel;
+import gui.dumb.BorderedLabeledComboBox;
+import gui.dumb.BorderedLabeledSpinner;
+import gui.dumb.BorderedLabeledTextField;
 import init.Main;
 import model.Affinity;
 import model.DisplayCharacter;
@@ -11,13 +15,12 @@ import utils.ClassUtils;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
-import java.awt.GridLayout;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class CharacterPanel extends JPanel {
+public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
     private BorderedLabeledTextField nameField;
     private BorderedLabeledTextField originField;
     private Map<Stat, BorderedLabeledSpinner> baseFields;
@@ -40,12 +43,10 @@ public class CharacterPanel extends JPanel {
     private ReadOnlyStatsComponents maxStats2;
 
     public CharacterPanel() {
-        super(new GridLayout(1, 5, 10, 10));
+        super(1, 5);
     }
-    
-    public void fill(DisplayCharacter display) {
-        removeAll();
 
+    protected void fill(DisplayCharacter display) {
         JPanel nameOriginAndGrowths = new JPanel();
         nameOriginAndGrowths.setLayout(new BoxLayout(nameOriginAndGrowths, BoxLayout.Y_AXIS));
         JPanel levelAffinityAndBases = new JPanel();
@@ -114,19 +115,15 @@ public class CharacterPanel extends JPanel {
         originField.inner.setText(display.data.origin);
         affinityField.inner.setSelectedItem(display.data.affinity.name());
         baseClassField.inner.setSelectedItem(display.data.baseClass);
-        tieActionListeners(display);
 
         add(nameOriginAndGrowths);
         add(levelAffinityAndBases);
         add(baseClassAverageStats);
         add(secondClassAverageStats);
         add(thirdClassAverageStats);
-
-        revalidate();
-        repaint();
     }
 
-    private void tieActionListeners(DisplayCharacter display) {
+    protected void tieActionListeners(DisplayCharacter display) {
         nameField.addActionListener(() ->
                 display.data.name = nameField.inner.getText());
 

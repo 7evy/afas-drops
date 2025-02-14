@@ -2,9 +2,7 @@ package model;
 
 import java.util.List;
 
-public class FEWeapon {
-    public int id;
-    public String name;
+public class FEWeapon extends FEObject implements DisplayedObject {
     public int might;
     public int hit;
     public int crit;

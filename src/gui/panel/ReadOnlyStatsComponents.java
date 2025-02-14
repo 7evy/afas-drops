@@ -1,5 +1,6 @@
-package gui;
+package gui.panel;
 
+import gui.dumb.BorderedLabeledTextField;
 import model.DisplayCharacter;
 import model.Stats;
 import model.Stats.Stat;

@@ -1,8 +1,6 @@
 package model;
 
-public class FEClass {
-    public int id;
-    public String name;
+public class FEClass extends FEObject implements DisplayedObject {
     public int tier;
     public FEClass promotion1;
     public FEClass promotion2;

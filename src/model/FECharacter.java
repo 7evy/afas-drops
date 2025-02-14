@@ -1,8 +1,6 @@
 package model;
 
-public class FECharacter {
-    public int id;
-    public String name;
+public class FECharacter extends FEObject {
     public String origin;
     public FEClass baseClass;
     public int baseLevel;
