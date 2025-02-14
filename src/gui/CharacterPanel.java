@@ -6,7 +6,7 @@ import model.DisplayCharacter;
 import model.FEClass;
 import model.Stats;
 import model.Stats.Stat;
-import service.ClassUtils;
+import utils.ClassUtils;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
@@ -89,13 +89,13 @@ public class CharacterPanel extends JPanel {
         nameOriginAndGrowths.add(originField);
         BorderedLabel growthsLabel = new BorderedLabel("Character growths:");
         nameOriginAndGrowths.add(growthsLabel);
-        growthFields.forEach((stat, field) -> nameOriginAndGrowths.add(field));
+        growthFields.forEach((_, field) -> nameOriginAndGrowths.add(field));
         
         levelAffinityAndBases.add(baseLevelField);
         levelAffinityAndBases.add(affinityField);
         BorderedLabel basesLabel = new BorderedLabel("Character bases:");
         levelAffinityAndBases.add(basesLabel);
-        baseFields.forEach((stat, field) -> levelAffinityAndBases.add(field));
+        baseFields.forEach((_, field) -> levelAffinityAndBases.add(field));
         
         baseClassLevelField = new BorderedLabeledSpinner("At level", new SpinnerNumberModel(20, 1, 20, 1));
         secondClassLevelField = new BorderedLabeledSpinner("At level", new SpinnerNumberModel(20, 1, 20, 1));
@@ -133,8 +133,8 @@ public class CharacterPanel extends JPanel {
         originField.addActionListener(() ->
                 display.data.origin = originField.inner.getText());
 
-        affinityField.addActionListener(() ->
-                display.data.affinity = Affinity.valueOf((String) affinityField.inner.getSelectedItem()), true);
+        affinityField.addActionListener(() -> display.data.affinity =
+                Affinity.valueOf((String) affinityField.inner.getSelectedItem()), true);
 
         baseFields.forEach((stat, field) -> field.addChangeListener(() -> {
             display.data.bases.set(stat, (Integer) field.inner.getValue());
@@ -168,17 +168,11 @@ public class CharacterPanel extends JPanel {
             actualizeThirdClassStats(display);
         }, false);
 
-        baseClassLevelField.addChangeListener(() -> {
-            actualizeBaseClassStats(display);
-        }, false);
+        baseClassLevelField.addChangeListener(() -> actualizeBaseClassStats(display), false);
 
-        secondClassLevelField.addChangeListener(() -> {
-            actualizeSecondClassStats(display);
-        }, false);
+        secondClassLevelField.addChangeListener(() -> actualizeSecondClassStats(display), false);
 
-        thirdClassLevelField.addChangeListener(() -> {
-            actualizeThirdClassStats(display);
-        }, false);
+        thirdClassLevelField.addChangeListener(() -> actualizeThirdClassStats(display), false);
 
         baseLevelField.addChangeListener(() -> {
             display.data.baseLevel = (Integer) baseLevelField.inner.getValue();

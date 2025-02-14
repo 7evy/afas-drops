@@ -2,7 +2,7 @@ package gui;
 
 import model.FEClass;
 import model.Stats.Stat;
-import service.ClassUtils;
+import utils.ClassUtils;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
@@ -63,13 +63,13 @@ public class ClassPanel extends JPanel {
         nameTierAndCaps.add(movementField);
         BorderedLabel classCapsLabel = new BorderedLabel("Class caps:");
         nameTierAndCaps.add(classCapsLabel);
-        capFields.forEach((stat, field) -> nameTierAndCaps.add(field));
+        capFields.forEach((_, field) -> nameTierAndCaps.add(field));
         
         promotionsAndBonuses.add(promotion1Field);
         promotionsAndBonuses.add(promotion2Field);
         BorderedLabel promotionBonusesLabel = new BorderedLabel("Promotion bonuses:");
         promotionsAndBonuses.add(promotionBonusesLabel);
-        bonusFields.forEach((stat, field) -> promotionsAndBonuses.add(field));
+        bonusFields.forEach((_, field) -> promotionsAndBonuses.add(field));
 
         nameField.inner.setText(display.name);
         tierField.inner.setText(Integer.toString(display.tier));
@@ -83,9 +83,7 @@ public class ClassPanel extends JPanel {
     }
 
     private void tieActionListeners(FEClass display) {
-        nameField.addActionListener(() -> {
-            display.name = nameField.inner.getText();
-        });
+        nameField.addActionListener(() -> display.name = nameField.inner.getText());
 
         tierField.addActionListener(() -> {
             int tier = Integer.parseInt(tierField.inner.getText());
@@ -93,24 +91,17 @@ public class ClassPanel extends JPanel {
             actualizePromotions(tier);
         });
 
-        movementField.addChangeListener(() -> {
-            display.movement = (Integer) movementField.inner.getValue();
-        }, true);
+        movementField.addChangeListener(() ->
+                display.movement = (Integer) movementField.inner.getValue(), true);
 
         capFields.forEach((stat, field) -> field.addChangeListener(() ->
                 display.caps.set(stat, (Integer) field.inner.getValue()), true));
 
-        promotion1Field.addActionListener(() -> {
-            display.promotion1 = ClassUtils.findByName(
-                (String) promotion1Field.inner.getSelectedItem()
-            );
-        }, true);
+        promotion1Field.addActionListener(() -> display.promotion1 =
+                ClassUtils.findByName((String) promotion1Field.inner.getSelectedItem()), true);
 
-        promotion2Field.addActionListener(() -> {
-            display.promotion2 = ClassUtils.findByName(
-                (String) promotion2Field.inner.getSelectedItem()
-            );
-        }, true);
+        promotion2Field.addActionListener(() -> display.promotion2 =
+                ClassUtils.findByName((String) promotion2Field.inner.getSelectedItem()), true);
 
         bonusFields.forEach((stat, field) -> field.addChangeListener(() ->
                 display.bonuses.set(stat, (Integer) field.inner.getValue()), true));
