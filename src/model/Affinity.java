@@ -1,11 +1,5 @@
 package model;
 
 public enum Affinity {
-    LIGHT,
-    DARK,
-    FIRE,
-    ICE,
-    WIND,
-    THUNDER,
-    ANIMA
+    Light, Dark, Fire, Ice, Wind, Thunder, Anima
 }

@@ -124,6 +124,10 @@ public class SQLiteRepository {
                 PRIMARY KEY (id)
             );
         """);
+        // TEMPORARY
+        execute("""
+            UPDATE character SET affinity = LEFT(affinity,1)+LOWER(SUBSTRING(affinity,2,LEN(affinity)));
+        """);
     }
 
     public static List<FEClass> fetchAllClasses() {

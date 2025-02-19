@@ -30,7 +30,7 @@ public class CharactersFrame extends WritableItemFrame<FECharacter> {
     @Override
     protected void refreshPanel() {
         object = CharacterUtils.findByName(list.getSelectedValue()).clone();
-        List<FEClass> initialPromotions = ClassUtils.getPromotions(object.baseClass.name);
+        List<FEClass> initialPromotions = ClassUtils.getDirectPromotions(object.baseClass.name);
         characterPanel.refresh(new DisplayCharacter(object, initialPromotions.get(0), initialPromotions.get(1)));
     }
 

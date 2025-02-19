@@ -1,6 +1,6 @@
 package model;
 
-public class FECharacter extends FEObject {
+public class FECharacter extends FEObject implements DisplayedObject {
     public String origin;
     public FEClass baseClass;
     public int baseLevel;

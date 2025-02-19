@@ -132,6 +132,20 @@ public class Stats {
     }
 
     public enum Stat {
-        HP, STR, MAG, SKL, SPD, LUK, DEF, RES, CON;
+        HP("HP"),
+        STR("Strength"),
+        MAG("Magic"),
+        SKL("Skill"),
+        SPD("Speed"),
+        LUK("Luck"),
+        DEF("Defence"),
+        RES("Resistance"),
+        CON("Constitution");
+
+        public final String label;
+
+        Stat(String label) {
+            this.label = label;
+        }
     }
 }

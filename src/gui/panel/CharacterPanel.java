@@ -185,7 +185,7 @@ public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
     }
 
     private void actualizeSecondClass(DisplayCharacter display) {
-        List<FEClass> options = ClassUtils.getPromotions((String) baseClassField.inner.getSelectedItem());
+        List<FEClass> options = ClassUtils.getDirectPromotions((String) baseClassField.inner.getSelectedItem());
         secondClassField = new BorderedLabeledComboBox("Second class",
                 options.stream().filter(Objects::nonNull).map(c -> c.name).toList(),
                 display.secondClass == null ? null : display.secondClass.name);
@@ -194,7 +194,7 @@ public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
     }
 
     private void actualizeThirdClass(DisplayCharacter display) {
-        List<FEClass> options = ClassUtils.getPromotions((String) secondClassField.inner.getSelectedItem());
+        List<FEClass> options = ClassUtils.getDirectPromotions((String) secondClassField.inner.getSelectedItem());
         thirdClassField = new BorderedLabeledComboBox("Third class",
                 options.stream().filter(Objects::nonNull).map(c -> c.name).toList(),
                 display.thirdClass == null ? null : display.thirdClass.name);

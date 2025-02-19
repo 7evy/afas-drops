@@ -15,7 +15,7 @@ public class BorderedLabeledComboBox extends BorderedPanel {
     public BorderedLabeledComboBox(String label, List<String> items, String selected) {
         super(0, 0);
         JPanel subPanel = new JPanel(new GridLayout(1, 2));
-        inner = new JComboBox<String>(items.toArray(String[]::new));
+        inner = new JComboBox<>(items.toArray(String[]::new));
         inner.setSelectedItem(selected);
         JLabel jLabel = new JLabel(label, JLabel.CENTER);
         subPanel.add(jLabel);
@@ -24,7 +24,7 @@ public class BorderedLabeledComboBox extends BorderedPanel {
     }
 
     public void addActionListener(Runnable onActionPerformed, boolean highlightChange) {
-        inner.addActionListener(e -> {
+        inner.addActionListener(_ -> {
             onActionPerformed.run();
             if (highlightChange) inner.setBackground(new Color(200, 200, 0));
         });
