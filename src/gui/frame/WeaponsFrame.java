@@ -20,7 +20,7 @@ public class WeaponsFrame extends WritableItemFrame<FEWeapon> {
 
     @Override
     protected CohesivePanel<? extends DisplayedObject> getPanel() {
-        return null;
+        return weaponPanel;
     }
 
     @Override

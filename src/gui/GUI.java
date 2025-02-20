@@ -34,14 +34,14 @@ public class GUI {
         weaponsButton.addActionListener(() -> weaponsFrame.setVisible(true));
 
         BorderedButton simulatorButton = new BorderedButton("Battle simulation");
-        weaponsButton.addActionListener(() -> battleSimulatorFrame.setVisible(true));
+        simulatorButton.addActionListener(() -> battleSimulatorFrame.setVisible(true));
  
         mainFrame.setLayout(new GridLayout(2, 3));
         mainFrame.add(charactersButton);
         mainFrame.add(classesButton);
         mainFrame.add(weaponsButton);
         mainFrame.add(new JPanel());
-        mainFrame.add(battleSimulatorFrame);
+        mainFrame.add(simulatorButton);
 
         mainFrame.pack();
         mainFrame.setVisible(true);

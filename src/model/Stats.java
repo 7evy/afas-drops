@@ -11,6 +11,8 @@ public class Stats {
     public int resistance;
     public int constitution;
 
+    public Stats() {}
+
     public Stats(int hp, int str, int mag, int skl, int spd, int luk, int def, int res, int con) {
         hitpoints = hp;
         strength = str;

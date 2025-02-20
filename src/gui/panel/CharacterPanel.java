@@ -16,6 +16,8 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -61,30 +63,25 @@ public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
 
         nameField = new BorderedLabeledTextField("Name");
         originField = new BorderedLabeledTextField("Origin");
-        baseFields = Map.of(
-                Stat.HP, new BorderedLabeledSpinner("HP", new SpinnerNumberModel(display.data.bases.hitpoints, 0, 50, 1)),
-                Stat.STR, new BorderedLabeledSpinner("Strength", new SpinnerNumberModel(display.data.bases.strength, 0, 50, 1)),
-                Stat.MAG, new BorderedLabeledSpinner("Magic", new SpinnerNumberModel(display.data.bases.magic, 0, 50, 1)),
-                Stat.SKL, new BorderedLabeledSpinner("Skill", new SpinnerNumberModel(display.data.bases.skill, 0, 50, 1)),
-                Stat.SPD, new BorderedLabeledSpinner("Speed", new SpinnerNumberModel(display.data.bases.speed, 0, 50, 1)),
-                Stat.LUK, new BorderedLabeledSpinner("Luck", new SpinnerNumberModel(display.data.bases.luck, 0, 50, 1)),
-                Stat.DEF, new BorderedLabeledSpinner("Defence", new SpinnerNumberModel(display.data.bases.defence, 0, 50, 1)),
-                Stat.RES, new BorderedLabeledSpinner("Resistance", new SpinnerNumberModel(display.data.bases.resistance, 0, 50, 1)),
-                Stat.CON, new BorderedLabeledSpinner("Constitution", new SpinnerNumberModel(display.data.bases.constitution, 0, 25, 1)));
+
+        baseFields = new LinkedHashMap<>();
+        for (Stat stat : Stat.values()) {
+            baseFields.put(stat, new BorderedLabeledSpinner(stat.label,
+                    new SpinnerNumberModel(display.data.bases.get(stat), 0, stat == Stat.CON ? 25 : 50, 1)));
+        }
         
         affinityField = new BorderedLabeledComboBox("Affinity",
                 Arrays.stream(Affinity.values()).map(Enum::name).toList(),
                 display.data.affinity.name());
         baseLevelField = new BorderedLabeledSpinner("Starting level", new SpinnerNumberModel(display.data.baseLevel, 1, 60, 1), 60);
-        growthFields = Map.of(
-                Stat.HP, new BorderedLabeledSpinner("HP", new SpinnerNumberModel(display.data.growths.hitpoints, 0, 250, 5)),
-                Stat.STR, new BorderedLabeledSpinner("Strength", new SpinnerNumberModel(display.data.growths.strength, 0, 250, 5)),
-                Stat.MAG, new BorderedLabeledSpinner("Magic", new SpinnerNumberModel(display.data.growths.magic, 0, 250, 5)),
-                Stat.SKL, new BorderedLabeledSpinner("Skill", new SpinnerNumberModel(display.data.growths.skill, 0, 250, 5)),
-                Stat.SPD, new BorderedLabeledSpinner("Speed", new SpinnerNumberModel(display.data.growths.speed, 0, 250, 5)),
-                Stat.LUK, new BorderedLabeledSpinner("Luck", new SpinnerNumberModel(display.data.growths.luck, 0, 250, 5)),
-                Stat.DEF, new BorderedLabeledSpinner("Defence", new SpinnerNumberModel(display.data.growths.defence, 0, 250, 5)),
-                Stat.RES, new BorderedLabeledSpinner("Resistance", new SpinnerNumberModel(display.data.growths.resistance, 0, 250, 5)));
+
+        growthFields = new LinkedHashMap<>();
+        for (Stat stat : Stat.values()) {
+            if (stat != Stat.CON) {
+                growthFields.put(stat, new BorderedLabeledSpinner(stat.label,
+                        new SpinnerNumberModel(display.data.growths.get(stat), 0, 250, 5)));
+            }
+        }
 
         nameOriginAndGrowths.add(nameField);
         nameOriginAndGrowths.add(originField);
