@@ -6,8 +6,13 @@ import gui.dumb.BorderedPanel;
 import model.DisplayedObject;
 import model.FEObject;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.DefaultListModel;
+import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.util.List;
 
 public abstract class WritableItemFrame<T extends FEObject> extends JFrame {
