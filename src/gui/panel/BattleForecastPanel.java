@@ -1,16 +1,20 @@
 package gui.panel;
 
+import java.awt.GridLayout;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
 import model.FEWeapon;
 import model.Stats;
 import model.Support.SupportBonus;
 import utils.TriFunction;
-
-import javax.swing.*;
-import java.awt.GridLayout;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
 public class BattleForecastPanel extends JPanel {
 
@@ -121,13 +125,20 @@ public class BattleForecastPanel extends JPanel {
         List<BattleOutcome> outcomes = simulate(
                 statsAttacker.hitpoints, hitRateAttacker, critRateAttacker, damageAttacker, attackerDoubles,
                 statsDefender.hitpoints, hitRateDefender, critRateDefender, damageDefender, defenderDoubles);
-        Iterator<BattleOutcome> nextIterator = outcomes.iterator();
-        Iterator<BattleOutcome> previousIterator = outcomes.reversed().iterator();
+        AtomicInteger iterator = new AtomicInteger(0);
 
-        previousButton.addActionListener(_ ->
-                refreshResultPanel(nextIterator.next(), statsAttacker.hitpoints, statsDefender.hitpoints));
-        nextButton.addActionListener(_ ->
-                refreshResultPanel(previousIterator.next(), statsAttacker.hitpoints, statsDefender.hitpoints));
+        previousButton.addActionListener(ignored -> {
+            if (iterator.incrementAndGet() > outcomes.size()) {
+                iterator.set(0);
+            }
+            refreshResultPanel(outcomes.get(iterator.get()), statsAttacker.hitpoints, statsDefender.hitpoints);
+        });
+        nextButton.addActionListener(ignored -> {
+            if (iterator.decrementAndGet() < 0) {
+                iterator.set(outcomes.size() - 1);
+            }
+            refreshResultPanel(outcomes.get(iterator.get()), statsAttacker.hitpoints, statsDefender.hitpoints);
+        });
 
         refreshResultPanel(outcomes.getFirst(), statsAttacker.hitpoints, statsDefender.hitpoints);
 
@@ -182,8 +193,10 @@ public class BattleForecastPanel extends JPanel {
                 if (attackerDoubles) {
                     outcomes.addAll(simulateAttack(outcome, hitRateAttacker, critRateAttacker, damageAttacker, BattleOutcome::damageDefender));
                 }
-                if (defenderDoubles) {
+                else if (defenderDoubles) {
                     outcomes.addAll(simulateAttack(outcome, hitRateDefender, critRateDefender, damageDefender, BattleOutcome::damageAttacker));
+                } else {
+                    outcomes.add(outcome);
                 }
             }
         }

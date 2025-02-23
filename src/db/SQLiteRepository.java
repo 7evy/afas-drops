@@ -68,6 +68,8 @@ public class SQLiteRepository {
                 bonus_RES INTEGER NOT NULL,
                 bonus_CON INTEGER NOT NULL,
                 movement INTEGER NOT NULL,
+                innate_skill TEXT NOT NULL,
+                acquired_skill TEXT NOT NULL,
                 PRIMARY KEY(id),
                 FOREIGN KEY (promotion_1) REFERENCES class(id),
                 FOREIGN KEY (promotion_2) REFERENCES class(id)
@@ -124,10 +126,18 @@ public class SQLiteRepository {
                 PRIMARY KEY (id)
             );
         """);
-        // TEMPORARY
-        execute("""
-            UPDATE character SET affinity = LEFT(affinity,1)+LOWER(SUBSTRING(affinity,2,LEN(affinity)));
-        """);
+
+        if (countClasses() == 0) {
+            newClass();
+        }
+
+        if (countCharacters() == 0) {
+            newCharacter();
+        }
+
+        if (countWeapons() == 0) {
+            newWeapon();
+        }
     }
 
     public static List<FEClass> fetchAllClasses() {
@@ -246,6 +256,8 @@ public class SQLiteRepository {
             rs.getInt("bonus_CON")
         );
         feClass.movement = rs.getInt("movement");
+        feClass.innateSkill = Skill.valueOf(rs.getString("innate_skill"));
+        feClass.acquiredSkill = Skill.valueOf(rs.getString("acquired_skill"));
         return feClass;
     }
 
@@ -257,9 +269,12 @@ public class SQLiteRepository {
         feWeapon.hit = rs.getInt("hit");
         feWeapon.crit = rs.getInt("crit");
         feWeapon.weight = rs.getInt("weight");
-        feWeapon.minRange = rs.getInt("minRange");
-        feWeapon.maxRange = rs.getInt("maxRange");
-        feWeapon.effects = Arrays.stream(rs.getString("effects").split(",")).map(Effect::valueOf).toList();
+        feWeapon.minRange = rs.getInt("min_range");
+        feWeapon.maxRange = rs.getInt("max_range");
+        feWeapon.effects = Arrays.stream(rs.getString("effects").split(","))
+                .filter(e -> !e.isBlank())
+                .map(Effect::valueOf)
+                .toList();
         feWeapon.skill = Skill.valueOf(rs.getString("skill"));
         feWeapon.bonuses = new Stats(
                 0,
@@ -290,29 +305,42 @@ public class SQLiteRepository {
     }
 
     public static void newClass() {
-        int id = count("SELECT COUNT(*) FROM class;");
+        int id = countClasses();
         execute("INSERT INTO class VALUES("
             + id + ",'New',1,null,null,"
             + "20,20,20,20,20,20,20,"
-            + "0,0,0,0,0,0,0,0,5);"
+            + "0,0,0,0,0,0,0,0,5,"
+            + "'None','None');"
         );
     }
 
+    private static int countClasses() {
+        return count("SELECT COUNT(*) FROM class;");
+    }
+
     public static void newCharacter() {
-        int id = count("SELECT COUNT(*) FROM character;");
+        int id = countCharacters();
         execute("INSERT INTO character VALUES("
-            + id + ",'New','',0,1,'LIGHT',1,"
+            + id + ",'New','',0,1,'Light',1,"
             + "0,0,0,0,0,0,0,0,"
             + "60,30,30,30,30,30,30,30);"
         );
     }
 
+    private static int countCharacters() {
+        return count("SELECT COUNT(*) FROM character;");
+    }
+
     public static void newWeapon() {
-        int id = count("SELECT COUNT(*) FROM weapon;");
-        execute("INSERT INTO character VALUES("
-            + id + ",'New',0,0,0,0,1,1,'','NONE',"
+        int id = countWeapons();
+        execute("INSERT INTO weapon VALUES("
+            + id + ",'New',0,0,0,0,1,1,'','None',"
             + "0,0,0,0,0,0,0);"
         );
+    }
+
+    private static int countWeapons() {
+        return count("SELECT COUNT(*) FROM weapon;");
     }
 
     public static void updateClass(FEClass feClass) {
@@ -336,7 +364,9 @@ public class SQLiteRepository {
             + "bonus_DEF = " + feClass.bonuses.defence + ","
             + "bonus_RES = " + feClass.bonuses.resistance + ","
             + "bonus_CON = " + feClass.bonuses.constitution + ","
-            + "movement = " + feClass.movement
+            + "movement = " + feClass.movement + ","
+            + "innate_skill = '" + feClass.innateSkill + "',"
+            + "acquired_skill = '" + feClass.acquiredSkill + "'"
             + " WHERE id = " + feClass.id + ";"
         );
     }
@@ -372,14 +402,14 @@ public class SQLiteRepository {
     public static void updateWeapon(FEWeapon weapon) {
         execute("UPDATE weapon SET "
                 + "name = '" + weapon.name + "',"
-                + "might = '" + weapon.might + "',"
+                + "might = " + weapon.might + ","
                 + "hit = " + weapon.hit + ","
                 + "crit = " + weapon.crit + ","
-                + "weight = '" + weapon.weight + "',"
+                + "weight = " + weapon.weight + ","
                 + "min_range = " + weapon.minRange + ","
                 + "max_range = " + weapon.maxRange + ","
-                + "effects = " + String.join(",", weapon.effects.stream().map(Effect::name).toArray(String[]::new)) + ","
-                + "skill = " + weapon.skill + ","
+                + "effects = '" + String.join(",", weapon.effects.stream().map(Effect::name).toArray(String[]::new)) + "',"
+                + "skill = '" + weapon.skill + "',"
                 + "bonus_STR = " + weapon.bonuses.strength + ","
                 + "bonus_MAG = " + weapon.bonuses.magic + ","
                 + "bonus_SKL = " + weapon.bonuses.skill + ","

@@ -111,7 +111,7 @@ public class BattleCharacterPanel extends CohesivePanel<FECharacter> {
             statFields.put(stat, new BorderedLabeledSpinner(stat.label,
                     new SpinnerNumberModel(stats.get(stat), 0, selectedClass.caps.get(stat), 1)));
         }
-        statFields.forEach((_, field) -> editableStatsPanel.add(field));
+        statFields.forEach((stat, field) -> editableStatsPanel.add(field));
     }
 
     private Stats computeStats(FECharacter character, FEClass selectedClass) {

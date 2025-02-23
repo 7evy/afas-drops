@@ -6,8 +6,6 @@ import gui.dumb.BorderedPanel;
 import gui.panel.BattleCharacterPanel;
 import gui.panel.BattleForecastPanel;
 import init.Main;
-import model.FEWeapon;
-import model.Stats;
 import model.Support;
 import utils.CharacterUtils;
 
@@ -73,6 +71,7 @@ public class BattleSimulatorFrame extends JFrame {
 
         launchSimulation();
 
+        add(mainLayout);
         pack();
     }
 

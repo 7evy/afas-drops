@@ -2,10 +2,8 @@ package gui.frame;
 
 import db.SQLiteRepository;
 import gui.panel.CharacterPanel;
-import gui.panel.CohesivePanel;
 import init.Main;
 import model.DisplayCharacter;
-import model.DisplayedObject;
 import model.FECharacter;
 import model.FEClass;
 import utils.CharacterUtils;
@@ -15,15 +13,19 @@ import java.util.List;
 
 public class CharactersFrame extends WritableItemFrame<FECharacter> {
 
-    private final CharacterPanel characterPanel;
+    private CharacterPanel characterPanel;
 
     public CharactersFrame() {
         super("Characters", "character", 1850, 700);
-        this.characterPanel = new CharacterPanel();
     }
 
     @Override
-    protected CohesivePanel<? extends DisplayedObject> getPanel() {
+    protected void makePanel() {
+        characterPanel = new CharacterPanel();
+    }
+
+    @Override
+    protected CharacterPanel getPanel() {
         return characterPanel;
     }
 

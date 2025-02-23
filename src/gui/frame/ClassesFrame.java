@@ -9,10 +9,14 @@ import java.util.List;
 
 public class ClassesFrame extends WritableItemFrame<FEClass> {
 
-    private final ClassPanel classPanel;
+    private ClassPanel classPanel;
 
     public ClassesFrame() {
-        super("Classes", "class", 800, 650);
+        super("Classes", "class", 1000, 750);
+    }
+
+    @Override
+    protected void makePanel() {
         classPanel = new ClassPanel();
     }
 

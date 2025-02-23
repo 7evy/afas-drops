@@ -5,12 +5,16 @@ import gui.dumb.BorderedLabeledComboBox;
 import gui.dumb.BorderedLabeledSpinner;
 import gui.dumb.BorderedLabeledTextField;
 import model.FEClass;
+import model.Skill;
 import model.Stats.Stat;
 import utils.ClassUtils;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
+
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +29,9 @@ public class ClassPanel extends CohesivePanel<FEClass> {
     private BorderedLabeledComboBox promotion2Field;
     private Map<Stat, BorderedLabeledSpinner> bonusFields;
 
+    private BorderedLabeledComboBox innateSkillField;
+    private BorderedLabeledComboBox acquiredSkillField;
+
     public ClassPanel() {
         super(1, 2);
     }
@@ -38,39 +45,39 @@ public class ClassPanel extends CohesivePanel<FEClass> {
         nameField = new BorderedLabeledTextField("Name");
         tierField = new BorderedLabeledTextField("Tier");
         movementField = new BorderedLabeledSpinner("Movement", new SpinnerNumberModel(display.movement, 0, 10, 1));
-        capFields = Map.of(
-                Stat.HP, new BorderedLabeledSpinner("HP", new SpinnerNumberModel(display.caps.hitpoints, 0, 120, 1)),
-                Stat.STR, new BorderedLabeledSpinner("Strength", new SpinnerNumberModel(display.caps.strength, 0, 50, 1)),
-                Stat.MAG, new BorderedLabeledSpinner("Magic", new SpinnerNumberModel(display.caps.magic, 0, 50, 1)),
-                Stat.SKL, new BorderedLabeledSpinner("Skill", new SpinnerNumberModel(display.caps.skill, 0, 50, 1)),
-                Stat.SPD, new BorderedLabeledSpinner("Speed", new SpinnerNumberModel(display.caps.speed, 0, 50, 1)),
-                Stat.DEF, new BorderedLabeledSpinner("Defence", new SpinnerNumberModel(display.caps.defence, 0, 50, 1)),
-                Stat.RES, new BorderedLabeledSpinner("Resistance", new SpinnerNumberModel(display.caps.resistance, 0, 50, 1)));
-        
+        capFields = new LinkedHashMap<>();
+        for (Stat stat : Stat.values()) {
+            if (stat != Stat.LUK && stat != Stat.CON) {
+                capFields.put(stat, new BorderedLabeledSpinner(stat.label,
+                        new SpinnerNumberModel(display.caps.get(stat), 0, stat == Stat.HP ? 120 : 50, 1)));
+            }
+        }
         promotion1Field = new BorderedLabeledComboBox("Promotion 1", ClassUtils.getTier(display.tier + 1), display.promotion1 == null ? null : display.promotion1.name);
         promotion2Field = new BorderedLabeledComboBox("Promotion 2", ClassUtils.getTier(display.tier + 1), display.promotion2 == null ? null : display.promotion2.name);
-        bonusFields = Map.of(
-                Stat.HP, new BorderedLabeledSpinner("HP", new SpinnerNumberModel(display.bonuses.hitpoints, 0, 120, 1)),
-                Stat.STR, new BorderedLabeledSpinner("Strength", new SpinnerNumberModel(display.bonuses.strength, 0, 50, 1)),
-                Stat.MAG, new BorderedLabeledSpinner("Magic", new SpinnerNumberModel(display.bonuses.magic, 0, 50, 1)),
-                Stat.SKL, new BorderedLabeledSpinner("Skill", new SpinnerNumberModel(display.bonuses.skill, 0, 50, 1)),
-                Stat.SPD, new BorderedLabeledSpinner("Speed", new SpinnerNumberModel(display.bonuses.speed, 0, 50, 1)),
-                Stat.DEF, new BorderedLabeledSpinner("Defence", new SpinnerNumberModel(display.bonuses.defence, 0, 50, 1)),
-                Stat.RES, new BorderedLabeledSpinner("Resistance", new SpinnerNumberModel(display.bonuses.resistance, 0, 50, 1)),
-                Stat.CON, new BorderedLabeledSpinner("Constitution", new SpinnerNumberModel(display.bonuses.constitution, 0, 25, 1)));
+        bonusFields = new LinkedHashMap<>();
+        for (Stat stat : Stat.values()) {
+            if (stat != Stat.LUK) {
+                bonusFields.put(stat, new BorderedLabeledSpinner(stat.label,
+                        new SpinnerNumberModel(display.bonuses.get(stat), 0, stat == Stat.HP ? 120 : (stat == Stat.CON ? 25 : 50), 1)));
+            }
+        }
+        innateSkillField = new BorderedLabeledComboBox("Innate skill", Arrays.stream(Skill.values()).map(Skill::name).toList(), display.innateSkill.name());
+        acquiredSkillField = new BorderedLabeledComboBox("Acquired skill", Arrays.stream(Skill.values()).map(Skill::name).toList(), display.acquiredSkill.name());
 
         nameTierAndCaps.add(nameField);
         nameTierAndCaps.add(tierField);
         nameTierAndCaps.add(movementField);
         BorderedLabel classCapsLabel = new BorderedLabel("Class caps:");
         nameTierAndCaps.add(classCapsLabel);
-        capFields.forEach((_, field) -> nameTierAndCaps.add(field));
+        capFields.forEach((stat, field) -> nameTierAndCaps.add(field));
+        nameTierAndCaps.add(innateSkillField);
         
         promotionsAndBonuses.add(promotion1Field);
         promotionsAndBonuses.add(promotion2Field);
         BorderedLabel promotionBonusesLabel = new BorderedLabel("Promotion bonuses:");
         promotionsAndBonuses.add(promotionBonusesLabel);
-        bonusFields.forEach((_, field) -> promotionsAndBonuses.add(field));
+        bonusFields.forEach((stat, field) -> promotionsAndBonuses.add(field));
+        promotionsAndBonuses.add(acquiredSkillField);
 
         nameField.inner.setText(display.name);
         tierField.inner.setText(Integer.toString(display.tier));
@@ -102,6 +109,12 @@ public class ClassPanel extends CohesivePanel<FEClass> {
 
         bonusFields.forEach((stat, field) -> field.addChangeListener(() ->
                 display.bonuses.set(stat, (Integer) field.inner.getValue()), true));
+
+        innateSkillField.addActionListener(() -> display.innateSkill =
+                Skill.valueOf((String) innateSkillField.inner.getSelectedItem()), true);
+
+        acquiredSkillField.addActionListener(() -> display.acquiredSkill =
+                Skill.valueOf((String) acquiredSkillField.inner.getSelectedItem()), true);
     }
 
     private void actualizePromotions(int tier) {

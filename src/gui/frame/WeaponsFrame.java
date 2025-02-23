@@ -1,9 +1,7 @@
 package gui.frame;
 
 import db.SQLiteRepository;
-import gui.panel.CohesivePanel;
 import gui.panel.WeaponPanel;
-import model.DisplayedObject;
 import model.FEWeapon;
 import utils.WeaponUtils;
 
@@ -11,15 +9,19 @@ import java.util.List;
 
 public class WeaponsFrame extends WritableItemFrame<FEWeapon> {
 
-    private final WeaponPanel weaponPanel;
+    private WeaponPanel weaponPanel;
 
     public WeaponsFrame() {
         super("Weapons", "weapon", 1000, 1000);
-        this.weaponPanel = new WeaponPanel();
     }
 
     @Override
-    protected CohesivePanel<? extends DisplayedObject> getPanel() {
+    protected void makePanel() {
+        weaponPanel = new WeaponPanel();
+    }
+
+    @Override
+    protected WeaponPanel getPanel() {
         return weaponPanel;
     }
 

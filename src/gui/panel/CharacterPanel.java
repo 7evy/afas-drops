@@ -16,7 +16,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,18 +62,15 @@ public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
 
         nameField = new BorderedLabeledTextField("Name");
         originField = new BorderedLabeledTextField("Origin");
-
         baseFields = new LinkedHashMap<>();
         for (Stat stat : Stat.values()) {
             baseFields.put(stat, new BorderedLabeledSpinner(stat.label,
                     new SpinnerNumberModel(display.data.bases.get(stat), 0, stat == Stat.CON ? 25 : 50, 1)));
         }
-        
         affinityField = new BorderedLabeledComboBox("Affinity",
                 Arrays.stream(Affinity.values()).map(Enum::name).toList(),
                 display.data.affinity.name());
         baseLevelField = new BorderedLabeledSpinner("Starting level", new SpinnerNumberModel(display.data.baseLevel, 1, 60, 1), 60);
-
         growthFields = new LinkedHashMap<>();
         for (Stat stat : Stat.values()) {
             if (stat != Stat.CON) {
@@ -87,13 +83,13 @@ public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
         nameOriginAndGrowths.add(originField);
         BorderedLabel growthsLabel = new BorderedLabel("Character growths:");
         nameOriginAndGrowths.add(growthsLabel);
-        growthFields.forEach((_, field) -> nameOriginAndGrowths.add(field));
+        growthFields.forEach((stat, field) -> nameOriginAndGrowths.add(field));
         
         levelAffinityAndBases.add(baseLevelField);
         levelAffinityAndBases.add(affinityField);
         BorderedLabel basesLabel = new BorderedLabel("Character bases:");
         levelAffinityAndBases.add(basesLabel);
-        baseFields.forEach((_, field) -> levelAffinityAndBases.add(field));
+        baseFields.forEach((stat, field) -> levelAffinityAndBases.add(field));
         
         baseClassLevelField = new BorderedLabeledSpinner("At level", new SpinnerNumberModel(20, 1, 20, 1));
         secondClassLevelField = new BorderedLabeledSpinner("At level", new SpinnerNumberModel(20, 1, 20, 1));

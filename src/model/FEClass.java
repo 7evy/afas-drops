@@ -7,6 +7,8 @@ public class FEClass extends FEObject implements DisplayedObject {
     public Stats caps;
     public Stats bonuses;
     public int movement;
+    public Skill innateSkill;
+    public Skill acquiredSkill;
 
     public FEClass clone() {
         FEClass clone = new FEClass();
@@ -18,6 +20,8 @@ public class FEClass extends FEObject implements DisplayedObject {
         clone.caps = caps.clone();
         clone.bonuses = bonuses.clone();
         clone.movement = movement;
+        clone.innateSkill = innateSkill;
+        clone.acquiredSkill = acquiredSkill;
         return clone;
     }
 

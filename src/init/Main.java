@@ -19,15 +19,6 @@ public class Main {
         SwingUtilities.invokeLater(() -> {
             try {
                 SQLiteRepository.initDB();
-                if (CLASSES.isEmpty()) {
-                    SQLiteRepository.newClass();
-                }
-                if (CHARACTERS.isEmpty()) {
-                    SQLiteRepository.newCharacter();
-                }
-                if (WEAPONS.isEmpty()) {
-                    SQLiteRepository.newWeapon();
-                }
                 GUI.init();
             } catch (Exception e) {
                 throw new RuntimeException(e);

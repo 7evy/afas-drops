@@ -10,6 +10,8 @@ import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -26,6 +28,8 @@ public abstract class WritableItemFrame<T extends FEObject> extends JFrame {
         super(title);
         setPreferredSize(new Dimension(width, height));
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+
+        makePanel();
 
         BorderedButton newTemplateButton = new BorderedButton("New " + label);
         newTemplateButton.addActionListener(this::newTemplate);
@@ -57,7 +61,7 @@ public abstract class WritableItemFrame<T extends FEObject> extends JFrame {
                 refreshPanel();
             }
         });
-        subLayout.add(list, BorderLayout.WEST);
+        subLayout.add(new JScrollPane(list), BorderLayout.WEST);
         subLayout.add(buttonContainer, BorderLayout.NORTH);
 
         subLayout.add(getPanel(), BorderLayout.CENTER);
@@ -96,6 +100,8 @@ public abstract class WritableItemFrame<T extends FEObject> extends JFrame {
         refreshPanel();
         list.setValueIsAdjusting(false);
     }
+
+    protected abstract void makePanel();
 
     protected abstract CohesivePanel<? extends DisplayedObject> getPanel();
 

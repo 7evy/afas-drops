@@ -24,7 +24,7 @@ public class BorderedLabeledComboBox extends BorderedPanel {
     }
 
     public void addActionListener(Runnable onActionPerformed, boolean highlightChange) {
-        inner.addActionListener(_ -> {
+        inner.addActionListener(ignored -> {
             onActionPerformed.run();
             if (highlightChange) inner.setBackground(new Color(200, 200, 0));
         });

@@ -16,11 +16,11 @@ public class GUI {
 
     public static void init() {
         JFrame mainFrame = new JFrame("Afa's Drops");
-        mainFrame.setPreferredSize(new Dimension(400, 200));
+        mainFrame.setPreferredSize(new Dimension(600, 200));
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        CharactersFrame charactersFrame = new CharactersFrame();
         ClassesFrame classesFrame = new ClassesFrame();
+        CharactersFrame charactersFrame = new CharactersFrame();
         WeaponsFrame weaponsFrame = new WeaponsFrame();
         BattleSimulatorFrame battleSimulatorFrame = new BattleSimulatorFrame();
 
