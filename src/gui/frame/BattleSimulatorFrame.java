@@ -6,21 +6,24 @@ import gui.dumb.BorderedPanel;
 import gui.panel.BattleCharacterPanel;
 import gui.panel.BattleForecastPanel;
 import init.Main;
+import model.FECharacter;
 import model.Support;
-import utils.CharacterUtils;
 
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.util.List;
+import java.awt.GridLayout;
 
 public class BattleSimulatorFrame extends JFrame {
     private final BattleCharacterPanel characterPanelLeft;
     private final BattleCharacterPanel characterPanelRight;
     private final BattleForecastPanel battleForecastPanel;
 
-    private final BorderedLabeledComboBox characterLeft;
-    private final BorderedLabeledComboBox characterRight;
+    private final BorderedLabeledComboBox<FECharacter> characterLeft;
+    private final BorderedLabeledComboBox<FECharacter> characterRight;
 
     public BattleSimulatorFrame() {
         super("Battle Simulator");
@@ -31,40 +34,37 @@ public class BattleSimulatorFrame extends JFrame {
         characterPanelRight = new BattleCharacterPanel();
         battleForecastPanel = new BattleForecastPanel();
 
-        BorderedPanel mainLayout = new BorderedPanel(10, 10);
-        BorderedPanel subLayout = new BorderedPanel(10, 10);
-        subLayout.no(BorderLayout.EAST);
-        subLayout.no(BorderLayout.WEST);
-        BorderedPanel attackerLayout = new BorderedPanel(10, 10);
-        BorderedPanel forecastLayout = new BorderedPanel(10, 10);
-        BorderedPanel defenderLayout = new BorderedPanel(10, 10);
+        FECharacter[] characters = Main.CHARACTERS.toArray(FECharacter[]::new);
 
-        List<String> characterNames = Main.CHARACTERS.stream().map(c -> c.name).toList();
+        JPanel attackerLayout = new JPanel();
+        attackerLayout.setLayout(new BoxLayout(attackerLayout, BoxLayout.Y_AXIS));
+        characterLeft = new BorderedLabeledComboBox<>("Attacker:", characters, Main.CHARACTERS.getFirst());
+        characterLeft.addActionListener(() ->
+                characterPanelLeft.refresh(characterLeft.getSelectedItem()), false);
+        attackerLayout.add(characterLeft);
+        attackerLayout.add(characterPanelLeft);
 
-        characterLeft = new BorderedLabeledComboBox("Attacker:", characterNames, characterNames.getFirst());
-        characterLeft.addActionListener(() -> characterPanelLeft.refresh(
-                CharacterUtils.findByName((String) characterLeft.inner.getSelectedItem())
-        ), false);
-        attackerLayout.add(characterLeft, BorderLayout.NORTH);
-        attackerLayout.add(characterPanelLeft, BorderLayout.CENTER);
+        JPanel defenderLayout = new JPanel();
+        defenderLayout.setLayout(new BoxLayout(defenderLayout, BoxLayout.Y_AXIS));
+        characterRight = new BorderedLabeledComboBox<>("Defender:", characters, Main.CHARACTERS.getFirst());
+        characterRight.addActionListener(() ->
+                characterPanelRight.refresh(characterRight.getSelectedItem()), false);
+        defenderLayout.add(characterRight);
+        defenderLayout.add(characterPanelRight);
 
-        characterRight = new BorderedLabeledComboBox("Defender:", characterNames, characterNames.getFirst());
-        characterRight.addActionListener(() -> characterPanelRight.refresh(
-                CharacterUtils.findByName((String) characterRight.inner.getSelectedItem())
-        ), false);
-        defenderLayout.add(characterRight, BorderLayout.NORTH);
-        defenderLayout.add(characterPanelRight, BorderLayout.CENTER);
-
+        BorderedPanel forecastLayout = new BorderedPanel(10, 0);
+        forecastLayout.no(BorderLayout.WEST);
+        forecastLayout.no(BorderLayout.EAST);
+        forecastLayout.no(BorderLayout.SOUTH);
         BorderedButton simButton = new BorderedButton("Simulate");
         simButton.addActionListener(this::launchSimulation);
         forecastLayout.add(simButton, BorderLayout.NORTH);
         forecastLayout.add(battleForecastPanel, BorderLayout.CENTER);
 
-        subLayout.add(attackerLayout, BorderLayout.WEST);
-        subLayout.add(forecastLayout, BorderLayout.CENTER);
-        subLayout.add(defenderLayout, BorderLayout.EAST);
-
-        mainLayout.add(subLayout, BorderLayout.CENTER);
+        JPanel mainLayout = new JPanel(new GridLayout(1, 3));
+        mainLayout.add(attackerLayout);
+        mainLayout.add(forecastLayout);
+        mainLayout.add(defenderLayout);
 
         characterPanelLeft.refresh(Main.CHARACTERS.getFirst());
         characterPanelRight.refresh(Main.CHARACTERS.getFirst());
@@ -76,12 +76,8 @@ public class BattleSimulatorFrame extends JFrame {
     }
 
     private void launchSimulation() {
-        Support attackerSupport = characterPanelLeft.support(
-                CharacterUtils.findByName((String) characterLeft.inner.getSelectedItem()).affinity
-        );
-        Support defenderSupport = characterPanelRight.support(
-                CharacterUtils.findByName((String) characterRight.inner.getSelectedItem()).affinity
-        );
+        Support attackerSupport = characterPanelLeft.support(characterLeft.getSelectedItem().affinity);
+        Support defenderSupport = characterPanelRight.support(characterRight.getSelectedItem().affinity);
         battleForecastPanel.refresh(
                 characterPanelLeft.stats(), characterPanelLeft.weapon(), attackerSupport.doubledBonus(),
                 characterPanelRight.stats(), characterPanelRight.weapon(), defenderSupport.doubledBonus()

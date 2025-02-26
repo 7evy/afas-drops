@@ -13,4 +13,8 @@ public abstract class FEObject {
     public int hashCode() {
         return Objects.hash(id);
     }
+
+    public String toString() {
+        return name;
+    }
 }

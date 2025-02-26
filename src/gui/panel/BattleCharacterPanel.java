@@ -12,65 +12,59 @@ import model.Stats.Stat;
 import model.Support;
 import model.SupportRank;
 import utils.ClassUtils;
-import utils.WeaponUtils;
 
 import javax.swing.BoxLayout;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
-import java.awt.GridLayout;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 public class BattleCharacterPanel extends CohesivePanel<FECharacter> {
     private BorderedLabeledSpinner levelField;
-    private BorderedLabeledComboBox classField;
-    // TODO move up
-    private BorderedLabeledComboBox weaponField;
-    private JComboBox<SupportRank> supportRankField;
-    private JComboBox<Affinity> supportAffinityField;
+    private BorderedLabeledComboBox<FEClass> classField;
+    private BorderedLabeledComboBox<FEWeapon> weaponField;
+    private BorderedLabeledComboBox<SupportRank> supportRankField;
+    private BorderedLabeledComboBox<Affinity> supportAffinityField;
 
     private JPanel editableStatsPanel;
     private Map<Stat, BorderedLabeledSpinner> statFields;
 
     public BattleCharacterPanel() {
-        super(1, 2);
+        super(1, 2, 0, 0);
     }
 
     @Override
     protected void fill(FECharacter display) {
-        JPanel metadataPanel = new JPanel();
-        metadataPanel.setLayout(new BoxLayout(metadataPanel, BoxLayout.Y_AXIS));
-        editableStatsPanel = new JPanel();
-        editableStatsPanel.setLayout(new BoxLayout(editableStatsPanel, BoxLayout.Y_AXIS));
-        JPanel supportPanel = new JPanel(new GridLayout(2, 1));
+        levelField = new BorderedLabeledSpinner("Level", new SpinnerNumberModel(1, 1, 20, 1));
+        classField = new BorderedLabeledComboBox<>("Class:",
+                ClassUtils.getPromotionTree(display.baseClass),
+                display.baseClass);
+        weaponField = new BorderedLabeledComboBox<>("Weapon:", Main.WEAPONS.toArray(FEWeapon[]::new), Main.WEAPONS.getFirst());
+        supportRankField = new BorderedLabeledComboBox<>("Rank:", SupportRank.values(), SupportRank.None);
+        supportAffinityField = new BorderedLabeledComboBox<>("Affinity:", Affinity.values(), Affinity.Light);
+
+        JPanel supportPanel = new JPanel();
+        supportPanel.setLayout(new BoxLayout(supportPanel, BoxLayout.Y_AXIS));
+        supportPanel.add(new JLabel("Support bonus:"));
+
         JPanel supportSubPanel = new JPanel();
         supportSubPanel.setLayout(new BoxLayout(supportSubPanel, BoxLayout.X_AXIS));
-
-        List<String> weaponNames = Main.WEAPONS.stream().map(w -> w.name).toList();
-        levelField = new BorderedLabeledSpinner("Level", new SpinnerNumberModel(1, 1, 20, 1));
-        classField = new BorderedLabeledComboBox("Class",
-                ClassUtils.getPromotionTree(display.baseClass.name),
-                display.baseClass.name);
-        weaponField = new BorderedLabeledComboBox("Weapon", weaponNames, weaponNames.getFirst());
-        supportRankField = new JComboBox<>(SupportRank.values());
-        supportAffinityField = new JComboBox<>(Affinity.values());
-
-        refreshStatFields(display, display.baseClass);
-
         supportSubPanel.add(supportRankField);
         supportSubPanel.add(supportAffinityField);
-        supportPanel.add(new JLabel("Support bonus:"));
         supportPanel.add(supportSubPanel);
 
+        JPanel metadataPanel = new JPanel();
+        metadataPanel.setLayout(new BoxLayout(metadataPanel, BoxLayout.Y_AXIS));
         metadataPanel.add(classField);
         metadataPanel.add(levelField);
         metadataPanel.add(weaponField);
         metadataPanel.add(supportPanel);
-
         add(metadataPanel);
+
+        editableStatsPanel = new JPanel();
+        editableStatsPanel.setLayout(new BoxLayout(editableStatsPanel, BoxLayout.Y_AXIS));
+        refreshStatFields(display, display.baseClass);
         add(editableStatsPanel);
     }
 
@@ -81,14 +75,11 @@ public class BattleCharacterPanel extends CohesivePanel<FECharacter> {
     }
 
     public FEWeapon weapon() {
-        return WeaponUtils.findByName((String) weaponField.inner.getSelectedItem());
+        return weaponField.getSelectedItem();
     }
 
     public Support support(Affinity affinity) {
-        return new Support(
-                (SupportRank) supportRankField.getSelectedItem(),
-                (Affinity) supportAffinityField.getSelectedItem(),
-                affinity);
+        return new Support(supportRankField.getSelectedItem(), supportAffinityField.getSelectedItem(), affinity);
     }
 
     public Stats stats() {
@@ -101,7 +92,7 @@ public class BattleCharacterPanel extends CohesivePanel<FECharacter> {
 
     private void actualizeStats(FECharacter display) {
         editableStatsPanel.removeAll();
-        refreshStatFields(display, ClassUtils.findByName((String) classField.inner.getSelectedItem()));
+        refreshStatFields(display, classField.getSelectedItem());
     }
 
     private void refreshStatFields(FECharacter display, FEClass selectedClass) {

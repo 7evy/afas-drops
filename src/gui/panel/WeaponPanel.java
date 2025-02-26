@@ -24,7 +24,7 @@ public class WeaponPanel extends CohesivePanel<FEWeapon> {
     private Map<Stats.Stat, BorderedLabeledSpinner> bonusFields;
 
     public WeaponPanel() {
-        super(1, 2);
+        super(1, 2, 10, 10);
     }
 
     protected void fill(FEWeapon display) {

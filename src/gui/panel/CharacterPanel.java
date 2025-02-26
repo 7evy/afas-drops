@@ -15,11 +15,8 @@ import utils.ClassUtils;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
     private BorderedLabeledTextField nameField;
@@ -27,15 +24,15 @@ public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
     private Map<Stat, BorderedLabeledSpinner> baseFields;
 
     private BorderedLabeledSpinner baseLevelField;
-    private BorderedLabeledComboBox affinityField;
+    private BorderedLabeledComboBox<Affinity> affinityField;
     private Map<Stat, BorderedLabeledSpinner> growthFields;
 
     private JPanel baseClassAverageStats;
     private JPanel secondClassAverageStats;
     private JPanel thirdClassAverageStats;
-    private BorderedLabeledComboBox baseClassField;
-    private BorderedLabeledComboBox secondClassField;
-    private BorderedLabeledComboBox thirdClassField;
+    private BorderedLabeledComboBox<FEClass> baseClassField;
+    private BorderedLabeledComboBox<FEClass> secondClassField;
+    private BorderedLabeledComboBox<FEClass> thirdClassField;
     private BorderedLabeledSpinner baseClassLevelField;
     private BorderedLabeledSpinner secondClassLevelField;
     private BorderedLabeledSpinner thirdClassLevelField;
@@ -44,7 +41,7 @@ public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
     private ReadOnlyStatsComponents maxStats2;
 
     public CharacterPanel() {
-        super(1, 5);
+        super(1, 5, 10, 10);
     }
 
     protected void fill(DisplayCharacter display) {
@@ -67,9 +64,7 @@ public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
             baseFields.put(stat, new BorderedLabeledSpinner(stat.label,
                     new SpinnerNumberModel(display.data.bases.get(stat), 0, stat == Stat.CON ? 25 : 50, 1)));
         }
-        affinityField = new BorderedLabeledComboBox("Affinity",
-                Arrays.stream(Affinity.values()).map(Enum::name).toList(),
-                display.data.affinity.name());
+        affinityField = new BorderedLabeledComboBox<>("Affinity", Affinity.values(), display.data.affinity);
         baseLevelField = new BorderedLabeledSpinner("Starting level", new SpinnerNumberModel(display.data.baseLevel, 1, 60, 1), 60);
         growthFields = new LinkedHashMap<>();
         for (Stat stat : Stat.values()) {
@@ -94,9 +89,9 @@ public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
         baseClassLevelField = new BorderedLabeledSpinner("At level", new SpinnerNumberModel(20, 1, 20, 1));
         secondClassLevelField = new BorderedLabeledSpinner("At level", new SpinnerNumberModel(20, 1, 20, 1));
         thirdClassLevelField = new BorderedLabeledSpinner("At level", new SpinnerNumberModel(20, 1, 20, 1));
-        baseClassField = new BorderedLabeledComboBox("Starting class",
-                Main.CLASSES.stream().map(c -> c.name).toList(),
-                display.data.baseClass.name);
+        baseClassField = new BorderedLabeledComboBox<>("Starting class",
+                Main.CLASSES.toArray(FEClass[]::new),
+                display.data.baseClass);
 
         actualizeSecondClass(display);
         actualizeThirdClass(display);
@@ -106,8 +101,8 @@ public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
 
         nameField.inner.setText(display.data.name);
         originField.inner.setText(display.data.origin);
-        affinityField.inner.setSelectedItem(display.data.affinity.name());
-        baseClassField.inner.setSelectedItem(display.data.baseClass);
+        affinityField.setSelectedItem(display.data.affinity);
+        baseClassField.setSelectedItem(display.data.baseClass);
 
         add(nameOriginAndGrowths);
         add(levelAffinityAndBases);
@@ -123,8 +118,8 @@ public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
         originField.addActionListener(() ->
                 display.data.origin = originField.inner.getText());
 
-        affinityField.addActionListener(() -> display.data.affinity =
-                Affinity.valueOf((String) affinityField.inner.getSelectedItem()), true);
+        affinityField.addActionListener(() ->
+                display.data.affinity = affinityField.getSelectedItem(), true);
 
         baseFields.forEach((stat, field) -> field.addChangeListener(() -> {
             display.data.bases.set(stat, (Integer) field.inner.getValue());
@@ -132,9 +127,7 @@ public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
         }, true));
 
         baseClassField.addActionListener(() -> {
-            display.data.baseClass = ClassUtils.findByName(
-                (String) baseClassField.inner.getSelectedItem()
-            );
+            display.data.baseClass = baseClassField.getSelectedItem();
             actualizeSecondClass(display);
             actualizeThirdClass(display);
             actualizeBaseClassStats(display);
@@ -143,18 +136,14 @@ public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
         }, true);
 
         secondClassField.addActionListener(() -> {
-            display.secondClass = ClassUtils.findByName(
-                (String) secondClassField.inner.getSelectedItem()
-            );
+            display.secondClass = secondClassField.getSelectedItem();
             actualizeThirdClass(display);
             actualizeSecondClassStats(display);
             actualizeThirdClassStats(display);
         }, false);
 
         thirdClassField.addActionListener(() -> {
-            display.thirdClass = ClassUtils.findByName(
-                (String) thirdClassField.inner.getSelectedItem()
-            );
+            display.thirdClass = thirdClassField.getSelectedItem();
             actualizeThirdClassStats(display);
         }, false);
 
@@ -178,21 +167,17 @@ public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
     }
 
     private void actualizeSecondClass(DisplayCharacter display) {
-        List<FEClass> options = ClassUtils.getDirectPromotions((String) baseClassField.inner.getSelectedItem());
-        secondClassField = new BorderedLabeledComboBox("Second class",
-                options.stream().filter(Objects::nonNull).map(c -> c.name).toList(),
-                display.secondClass == null ? null : display.secondClass.name);
-        secondClassField.inner.setSelectedItem(0);
-        display.secondClass = options.getFirst();
+        FEClass[] options = ClassUtils.getDirectPromotions(baseClassField.getSelectedItem());
+        secondClassField = new BorderedLabeledComboBox<>("Second class", options, display.secondClass);
+        display.secondClass = options[0];
+        secondClassField.setSelectedItem(display.secondClass);
     }
 
     private void actualizeThirdClass(DisplayCharacter display) {
-        List<FEClass> options = ClassUtils.getDirectPromotions((String) secondClassField.inner.getSelectedItem());
-        thirdClassField = new BorderedLabeledComboBox("Third class",
-                options.stream().filter(Objects::nonNull).map(c -> c.name).toList(),
-                display.thirdClass == null ? null : display.thirdClass.name);
-        thirdClassField.inner.setSelectedItem(0);
-        display.thirdClass = options.getFirst();
+        FEClass[] options = ClassUtils.getDirectPromotions(secondClassField.getSelectedItem());
+        thirdClassField = new BorderedLabeledComboBox<>("Third class", options, display.thirdClass);
+        display.thirdClass = options[0];
+        thirdClassField.setSelectedItem(display.thirdClass);
     }
 
     private void actualizeBaseClassStats(DisplayCharacter display) {

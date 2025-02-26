@@ -13,9 +13,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
 
-import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ClassPanel extends CohesivePanel<FEClass> {
@@ -25,15 +23,15 @@ public class ClassPanel extends CohesivePanel<FEClass> {
 
     private Map<Stat, BorderedLabeledSpinner> capFields;
 
-    private BorderedLabeledComboBox promotion1Field;
-    private BorderedLabeledComboBox promotion2Field;
+    private BorderedLabeledComboBox<FEClass> promotion1Field;
+    private BorderedLabeledComboBox<FEClass> promotion2Field;
     private Map<Stat, BorderedLabeledSpinner> bonusFields;
 
-    private BorderedLabeledComboBox innateSkillField;
-    private BorderedLabeledComboBox acquiredSkillField;
+    private BorderedLabeledComboBox<Skill> innateSkillField;
+    private BorderedLabeledComboBox<Skill> acquiredSkillField;
 
     public ClassPanel() {
-        super(1, 2);
+        super(1, 2, 10, 10);
     }
 
     protected void fill(FEClass display) {
@@ -52,8 +50,8 @@ public class ClassPanel extends CohesivePanel<FEClass> {
                         new SpinnerNumberModel(display.caps.get(stat), 0, stat == Stat.HP ? 120 : 50, 1)));
             }
         }
-        promotion1Field = new BorderedLabeledComboBox("Promotion 1", ClassUtils.getTier(display.tier + 1), display.promotion1 == null ? null : display.promotion1.name);
-        promotion2Field = new BorderedLabeledComboBox("Promotion 2", ClassUtils.getTier(display.tier + 1), display.promotion2 == null ? null : display.promotion2.name);
+        promotion1Field = new BorderedLabeledComboBox<>("Promotion 1", ClassUtils.getTier(display.tier + 1), display.promotion1);
+        promotion2Field = new BorderedLabeledComboBox<>("Promotion 2", ClassUtils.getTier(display.tier + 1), display.promotion2);
         bonusFields = new LinkedHashMap<>();
         for (Stat stat : Stat.values()) {
             if (stat != Stat.LUK) {
@@ -61,8 +59,8 @@ public class ClassPanel extends CohesivePanel<FEClass> {
                         new SpinnerNumberModel(display.bonuses.get(stat), 0, stat == Stat.HP ? 120 : (stat == Stat.CON ? 25 : 50), 1)));
             }
         }
-        innateSkillField = new BorderedLabeledComboBox("Innate skill", Arrays.stream(Skill.values()).map(Skill::name).toList(), display.innateSkill.name());
-        acquiredSkillField = new BorderedLabeledComboBox("Acquired skill", Arrays.stream(Skill.values()).map(Skill::name).toList(), display.acquiredSkill.name());
+        innateSkillField = new BorderedLabeledComboBox<>("Innate skill", Skill.values(), display.innateSkill);
+        acquiredSkillField = new BorderedLabeledComboBox<>("Acquired skill", Skill.values(), display.acquiredSkill);
 
         nameTierAndCaps.add(nameField);
         nameTierAndCaps.add(tierField);
@@ -101,29 +99,29 @@ public class ClassPanel extends CohesivePanel<FEClass> {
         capFields.forEach((stat, field) -> field.addChangeListener(() ->
                 display.caps.set(stat, (Integer) field.inner.getValue()), true));
 
-        promotion1Field.addActionListener(() -> display.promotion1 =
-                ClassUtils.findByName((String) promotion1Field.inner.getSelectedItem()), true);
+        promotion1Field.addActionListener(() ->
+                display.promotion1 = promotion1Field.getSelectedItem(), true);
 
-        promotion2Field.addActionListener(() -> display.promotion2 =
-                ClassUtils.findByName((String) promotion2Field.inner.getSelectedItem()), true);
+        promotion2Field.addActionListener(() ->
+                display.promotion2 = promotion2Field.getSelectedItem(), true);
 
         bonusFields.forEach((stat, field) -> field.addChangeListener(() ->
                 display.bonuses.set(stat, (Integer) field.inner.getValue()), true));
 
-        innateSkillField.addActionListener(() -> display.innateSkill =
-                Skill.valueOf((String) innateSkillField.inner.getSelectedItem()), true);
+        innateSkillField.addActionListener(() ->
+                display.innateSkill = innateSkillField.getSelectedItem(), true);
 
-        acquiredSkillField.addActionListener(() -> display.acquiredSkill =
-                Skill.valueOf((String) acquiredSkillField.inner.getSelectedItem()), true);
+        acquiredSkillField.addActionListener(() ->
+                display.acquiredSkill = acquiredSkillField.getSelectedItem(), true);
     }
 
     private void actualizePromotions(int tier) {
-        List<String> possiblePromotions = ClassUtils.getTier(tier + 1);
-        promotion1Field.inner.removeAllItems();
-        promotion2Field.inner.removeAllItems();
-        possiblePromotions.forEach(c -> {
-            promotion1Field.inner.addItem(c);
-            promotion2Field.inner.addItem(c);
-        });
+        FEClass[] possiblePromotions = ClassUtils.getTier(tier + 1);
+        promotion1Field.removeAllItems();
+        promotion2Field.removeAllItems();
+        for (FEClass c : possiblePromotions) {
+            promotion1Field.addItem(c);
+            promotion2Field.addItem(c);
+        };
     }
 }

@@ -24,8 +24,4 @@ public class FEClass extends FEObject implements DisplayedObject {
         clone.acquiredSkill = acquiredSkill;
         return clone;
     }
-
-    public String toString() {
-        return Integer.toString(id);
-    }
 }

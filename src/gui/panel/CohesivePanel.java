@@ -6,8 +6,8 @@ import javax.swing.JPanel;
 import java.awt.GridLayout;
 
 public abstract class CohesivePanel<T extends DisplayedObject> extends JPanel {
-    public CohesivePanel(int rows, int cols) {
-        super(new GridLayout(rows, cols, 10, 10));
+    public CohesivePanel(int rows, int cols, int hgap, int vgap) {
+        super(new GridLayout(rows, cols, hgap, vgap));
     }
 
     public void refresh(T display) {

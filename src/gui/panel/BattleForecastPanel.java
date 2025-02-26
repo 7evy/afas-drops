@@ -1,6 +1,6 @@
 package gui.panel;
 
-import java.awt.GridLayout;
+import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,6 +11,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import gui.dumb.BorderedPanel;
 import model.FEWeapon;
 import model.Stats;
 import model.Support.SupportBonus;
@@ -33,50 +34,68 @@ public class BattleForecastPanel extends JPanel {
     private final JLabel hpDefender;
 
     public BattleForecastPanel() {
-        super(new GridLayout(1, 4, 10, 10));
+        super();
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-        JPanel hitPanel = new JPanel();
-        hitPanel.setLayout(new GridLayout(1, 2));
-        hitRateDefender = new JLabel();
+        BorderedPanel hitPanel = new BorderedPanel(0, 2);
+        JPanel hitSubPanel = new JPanel();
+        hitSubPanel.setLayout(new BoxLayout(hitSubPanel, BoxLayout.X_AXIS));
         hitRateAttacker = new JLabel();
-        hitPanel.add(hitRateDefender);
-        hitPanel.add(hitRateAttacker);
+        JLabel hitRateLabel = new JLabel("    < Hit >    ");
+        hitRateDefender = new JLabel();
+        hitSubPanel.add(hitRateAttacker);
+        hitSubPanel.add(hitRateLabel);
+        hitSubPanel.add(hitRateDefender);
+        hitPanel.add(hitSubPanel, BorderLayout.CENTER);
 
-        JPanel critPanel = new JPanel();
-        critPanel.setLayout(new GridLayout(1, 2));
-        critRateDefender = new JLabel();
+        BorderedPanel critPanel = new BorderedPanel(0, 2);
+        JPanel critSubPanel = new JPanel();
+        critSubPanel.setLayout(new BoxLayout(critSubPanel, BoxLayout.X_AXIS));
         critRateAttacker = new JLabel();
-        critPanel.add(critRateDefender);
-        critPanel.add(critRateAttacker);
+        JLabel critRateLabel = new JLabel("    < Crit >    ");
+        critRateDefender = new JLabel();
+        critSubPanel.add(critRateAttacker);
+        critSubPanel.add(critRateLabel);
+        critSubPanel.add(critRateDefender);
+        critPanel.add(critSubPanel, BorderLayout.CENTER);
 
-        JPanel damagePanel = new JPanel();
-        damagePanel.setLayout(new GridLayout(1, 2));
-        damageDefender = new JLabel();
+        BorderedPanel damagePanel = new BorderedPanel(0, 2);
+        JPanel damageSubPanel = new JPanel();
+        damageSubPanel.setLayout(new BoxLayout(damageSubPanel, BoxLayout.X_AXIS));
+        damageSubPanel.setAlignmentY(CENTER_ALIGNMENT);
         damageAttacker = new JLabel();
-        damagePanel.add(damageDefender);
-        damagePanel.add(damageAttacker);
+        JLabel damageLabel = new JLabel("   < Damage >   ");
+        damageDefender = new JLabel();
+        damageSubPanel.add(damageAttacker);
+        damageSubPanel.add(damageLabel);
+        damageSubPanel.add(damageDefender);
+        damagePanel.add(damageSubPanel, BorderLayout.CENTER);
 
-        JPanel resultPanel = new JPanel();
-        resultPanel.setLayout(new GridLayout(4, 1));
-
-        JPanel arrowsPanel = new JPanel();
-        previousButton = new JButton("▶");
-        nextButton = new JButton("◀");
-        arrowsPanel.add(previousButton);
-        arrowsPanel.add(nextButton);
+        BorderedPanel arrowsPanel = new BorderedPanel(0, 2);
+        JPanel arrowsSubPanel = new JPanel();
+        nextButton = new JButton("▶");
+        previousButton = new JButton("◀");
+        arrowsSubPanel.add(previousButton);
+        arrowsSubPanel.add(nextButton);
+        arrowsPanel.add(arrowsSubPanel, BorderLayout.CENTER);
 
         resultProbability = new JLabel();
 
         JPanel hpLeftPanel = new JPanel();
-        hpLeftPanel.setLayout(new GridLayout(1, 2));
-        hpDefender = new JLabel();
+        hpLeftPanel.setLayout(new BoxLayout(hpLeftPanel, BoxLayout.X_AXIS));
         hpAttacker = new JLabel();
-        hpLeftPanel.add(hpDefender);
+        JLabel hpLeftLabel = new JLabel("   < HP left >   ");
+        hpDefender = new JLabel();
         hpLeftPanel.add(hpAttacker);
+        hpLeftPanel.add(hpLeftLabel);
+        hpLeftPanel.add(hpDefender);
 
         JPanel simulationDetailsPanel = new JPanel();
         simulationDetailsPanel.setLayout(new BoxLayout(simulationDetailsPanel, BoxLayout.Y_AXIS));
+        // TODO
 
+        JPanel resultPanel = new JPanel();
+        resultPanel.setLayout(new BoxLayout(resultPanel, BoxLayout.Y_AXIS));
         resultPanel.add(arrowsPanel);
         resultPanel.add(resultProbability);
         resultPanel.add(hpLeftPanel);
@@ -128,7 +147,7 @@ public class BattleForecastPanel extends JPanel {
         AtomicInteger iterator = new AtomicInteger(0);
 
         previousButton.addActionListener(ignored -> {
-            if (iterator.incrementAndGet() > outcomes.size()) {
+            if (iterator.incrementAndGet() >= outcomes.size()) {
                 iterator.set(0);
             }
             refreshResultPanel(outcomes.get(iterator.get()), statsAttacker.hitpoints, statsDefender.hitpoints);

@@ -7,15 +7,14 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.util.List;
 
-public class BorderedLabeledComboBox extends BorderedPanel {
-    public final JComboBox<String> inner;
+public class BorderedLabeledComboBox<T> extends BorderedPanel {
+    private final JComboBox<T> inner;
 
-    public BorderedLabeledComboBox(String label, List<String> items, String selected) {
+    public BorderedLabeledComboBox(String label, T[] items, T selected) {
         super(0, 0);
         JPanel subPanel = new JPanel(new GridLayout(1, 2));
-        inner = new JComboBox<>(items.toArray(String[]::new));
+        inner = new JComboBox<T>(items);
         inner.setSelectedItem(selected);
         JLabel jLabel = new JLabel(label, JLabel.CENTER);
         subPanel.add(jLabel);
@@ -28,6 +27,23 @@ public class BorderedLabeledComboBox extends BorderedPanel {
             onActionPerformed.run();
             if (highlightChange) inner.setBackground(new Color(200, 200, 0));
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    public T getSelectedItem() {
+        return (T) inner.getSelectedItem();
+    }
+
+    public void setSelectedItem(T item) {
+        inner.setSelectedItem(item);
+    }
+
+    public void addItem(T item) {
+        inner.addItem(item);
+    }
+
+    public void removeAllItems() {
+        inner.removeAllItems();
     }
 
     @Override
