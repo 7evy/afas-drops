@@ -8,6 +8,7 @@ import model.FEClass;
 import model.FEWeapon;
 import model.Skill;
 import model.Stats;
+import model.WeaponType;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -70,6 +71,7 @@ public class SQLiteRepository {
                 movement INTEGER NOT NULL,
                 innate_skill TEXT NOT NULL,
                 acquired_skill TEXT NOT NULL,
+                weapons TEXT,
                 PRIMARY KEY(id),
                 FOREIGN KEY (promotion_1) REFERENCES class(id),
                 FOREIGN KEY (promotion_2) REFERENCES class(id)
@@ -123,9 +125,13 @@ public class SQLiteRepository {
                 bonus_LUK INTEGER NOT NULL,
                 bonus_DEF INTEGER NOT NULL,
                 bonus_RES INTEGER NOT NULL,
+                type TEXT,
                 PRIMARY KEY (id)
             );
         """);
+        // TEMPORARY
+        execute("UPDATE class SET weapons = ''; ALTER TABLE class ALTER COLUMN weapons TEXT NOT NULL;");
+        execute("UPDATE weapon SET type = 'Sword'; ALTER TABLE weapon ALTER COLUMN type TEXT NOT NULL;");
 
         if (countClasses() == 0) {
             newClass();
@@ -258,6 +264,10 @@ public class SQLiteRepository {
         feClass.movement = rs.getInt("movement");
         feClass.innateSkill = Skill.valueOf(rs.getString("innate_skill"));
         feClass.acquiredSkill = Skill.valueOf(rs.getString("acquired_skill"));
+        feClass.weapons = Arrays.stream(rs.getString("weapons").split(","))
+                .filter(w -> !w.isBlank())
+                .map(WeaponType::valueOf)
+                .toList();
         return feClass;
     }
 
@@ -287,6 +297,7 @@ public class SQLiteRepository {
                 rs.getInt("bonus_RES"),
                 0
         );
+        feWeapon.type = WeaponType.valueOf(rs.getString("type"));
         return feWeapon;
     }
 

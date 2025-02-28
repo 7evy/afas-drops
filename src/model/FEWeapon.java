@@ -12,6 +12,7 @@ public class FEWeapon extends FEObject implements DisplayedObject {
     public List<Effect> effects;
     public Skill skill;
     public Stats bonuses;
+    public WeaponType type;
 
     public FEWeapon clone() {
         FEWeapon clone = new FEWeapon();

@@ -1,5 +1,7 @@
 package model;
 
+import java.util.List;
+
 public class FEClass extends FEObject implements DisplayedObject {
     public int tier;
     public FEClass promotion1;
@@ -9,6 +11,7 @@ public class FEClass extends FEObject implements DisplayedObject {
     public int movement;
     public Skill innateSkill;
     public Skill acquiredSkill;
+    public List<WeaponType> weapons;
 
     public FEClass clone() {
         FEClass clone = new FEClass();
@@ -22,6 +25,7 @@ public class FEClass extends FEObject implements DisplayedObject {
         clone.movement = movement;
         clone.innateSkill = innateSkill;
         clone.acquiredSkill = acquiredSkill;
+        clone.weapons = List.copyOf(weapons);
         return clone;
     }
 }
