@@ -79,8 +79,8 @@ public class BattleSimulatorFrame extends JFrame {
         Support attackerSupport = characterPanelLeft.support(characterLeft.getSelectedItem().affinity);
         Support defenderSupport = characterPanelRight.support(characterRight.getSelectedItem().affinity);
         battleForecastPanel.refresh(
-                characterPanelLeft.stats(), characterPanelLeft.weapon(), attackerSupport.doubledBonus(),
-                characterPanelRight.stats(), characterPanelRight.weapon(), defenderSupport.doubledBonus()
+                characterPanelLeft.stats(), characterPanelLeft.weapon(), characterPanelLeft.feClass(), attackerSupport.doubledBonus(),
+                characterPanelRight.stats(), characterPanelRight.weapon(), characterPanelRight.feClass(), defenderSupport.doubledBonus()
         );
     }
 }

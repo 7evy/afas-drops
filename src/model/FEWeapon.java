@@ -9,10 +9,11 @@ public class FEWeapon extends FEObject implements DisplayedObject {
     public int weight;
     public int minRange;
     public int maxRange;
-    public List<Effect> effects;
     public Skill skill;
     public Stats bonuses;
     public WeaponType type;
+    public List<WeaponEffect> effects;
+    public List<ClassCategory> effectiveness;
 
     public FEWeapon clone() {
         FEWeapon clone = new FEWeapon();
@@ -27,6 +28,7 @@ public class FEWeapon extends FEObject implements DisplayedObject {
         clone.effects = List.copyOf(effects);
         clone.skill = skill;
         clone.bonuses = bonuses.clone();
+        clone.effectiveness = List.copyOf(effectiveness);
         return clone;
     }
 }

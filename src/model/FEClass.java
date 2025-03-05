@@ -12,6 +12,7 @@ public class FEClass extends FEObject implements DisplayedObject {
     public Skill innateSkill;
     public Skill acquiredSkill;
     public List<WeaponType> weapons;
+    public List<ClassCategory> categories;
 
     public FEClass clone() {
         FEClass clone = new FEClass();
@@ -26,6 +27,7 @@ public class FEClass extends FEObject implements DisplayedObject {
         clone.innateSkill = innateSkill;
         clone.acquiredSkill = acquiredSkill;
         clone.weapons = List.copyOf(weapons);
+        clone.categories = List.copyOf(categories);
         return clone;
     }
 }

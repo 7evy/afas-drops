@@ -74,6 +74,10 @@ public class BattleCharacterPanel extends CohesivePanel<FECharacter> {
         classField.addActionListener(() -> actualizeStats(display), false);
     }
 
+    public FEClass feClass() {
+        return classField.getSelectedItem();
+    }
+
     public FEWeapon weapon() {
         return weaponField.getSelectedItem();
     }

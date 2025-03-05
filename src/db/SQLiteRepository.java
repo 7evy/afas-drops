@@ -2,7 +2,8 @@ package db;
 
 import init.Main;
 import model.Affinity;
-import model.Effect;
+import model.ClassCategory;
+import model.WeaponEffect;
 import model.FECharacter;
 import model.FEClass;
 import model.FEWeapon;
@@ -72,6 +73,7 @@ public class SQLiteRepository {
                 innate_skill TEXT NOT NULL,
                 acquired_skill TEXT NOT NULL,
                 weapons TEXT,
+                categories TEXT,
                 PRIMARY KEY(id),
                 FOREIGN KEY (promotion_1) REFERENCES class(id),
                 FOREIGN KEY (promotion_2) REFERENCES class(id)
@@ -126,12 +128,15 @@ public class SQLiteRepository {
                 bonus_DEF INTEGER NOT NULL,
                 bonus_RES INTEGER NOT NULL,
                 type TEXT,
+                effectiveness TEXT,
                 PRIMARY KEY (id)
             );
         """);
         // TEMPORARY
         execute("UPDATE class SET weapons = ''; ALTER TABLE class ALTER COLUMN weapons TEXT NOT NULL;");
+        execute("UPDATE class SET categories = ''; ALTER TABLE class ALTER COLUMN categories TEXT NOT NULL;");
         execute("UPDATE weapon SET type = 'Sword'; ALTER TABLE weapon ALTER COLUMN type TEXT NOT NULL;");
+        execute("UPDATE weapon SET effectiveness = ''; ALTER TABLE effectiveness ALTER COLUMN type TEXT NOT NULL;");
 
         if (countClasses() == 0) {
             newClass();
@@ -268,6 +273,10 @@ public class SQLiteRepository {
                 .filter(w -> !w.isBlank())
                 .map(WeaponType::valueOf)
                 .toList();
+        feClass.categories = Arrays.stream(rs.getString("categories").split(","))
+                .filter(w -> !w.isBlank())
+                .map(ClassCategory::valueOf)
+                .toList();
         return feClass;
     }
 
@@ -281,10 +290,6 @@ public class SQLiteRepository {
         feWeapon.weight = rs.getInt("weight");
         feWeapon.minRange = rs.getInt("min_range");
         feWeapon.maxRange = rs.getInt("max_range");
-        feWeapon.effects = Arrays.stream(rs.getString("effects").split(","))
-                .filter(e -> !e.isBlank())
-                .map(Effect::valueOf)
-                .toList();
         feWeapon.skill = Skill.valueOf(rs.getString("skill"));
         feWeapon.bonuses = new Stats(
                 0,
@@ -298,6 +303,14 @@ public class SQLiteRepository {
                 0
         );
         feWeapon.type = WeaponType.valueOf(rs.getString("type"));
+        feWeapon.effects = Arrays.stream(rs.getString("effects").split(","))
+                .filter(e -> !e.isBlank())
+                .map(WeaponEffect::valueOf)
+                .toList();
+        feWeapon.effectiveness = Arrays.stream(rs.getString("effectiveness").split(","))
+                .filter(e -> !e.isBlank())
+                .map(ClassCategory::valueOf)
+                .toList();
         return feWeapon;
     }
 
@@ -318,10 +331,10 @@ public class SQLiteRepository {
     public static void newClass() {
         int id = countClasses();
         execute("INSERT INTO class VALUES("
-            + id + ",'New',1,null,null,"
-            + "20,20,20,20,20,20,20,"
-            + "0,0,0,0,0,0,0,0,5,"
-            + "'None','None');"
+                + id + ",'New',1,null,null,"
+                + "20,20,20,20,20,20,20,"
+                + "0,0,0,0,0,0,0,0,5,"
+                + "'None','None','','');"
         );
     }
 
@@ -332,9 +345,9 @@ public class SQLiteRepository {
     public static void newCharacter() {
         int id = countCharacters();
         execute("INSERT INTO character VALUES("
-            + id + ",'New','',0,1,'Light',1,"
-            + "0,0,0,0,0,0,0,0,"
-            + "60,30,30,30,30,30,30,30);"
+                + id + ",'New','',0,1,'Light',1,"
+                + "0,0,0,0,0,0,0,0,"
+                + "60,30,30,30,30,30,30,30);"
         );
     }
 
@@ -345,8 +358,8 @@ public class SQLiteRepository {
     public static void newWeapon() {
         int id = countWeapons();
         execute("INSERT INTO weapon VALUES("
-            + id + ",'New',0,0,0,0,1,1,'','None',"
-            + "0,0,0,0,0,0,0);"
+                + id + ",'New',0,0,0,0,1,1,'','None',"
+                + "0,0,0,0,0,0,0,'Sword','');"
         );
     }
 
@@ -356,57 +369,59 @@ public class SQLiteRepository {
 
     public static void updateClass(FEClass feClass) {
         execute("UPDATE class SET "
-            + "name = '" + feClass.name + "',"
-            + "tier = " + feClass.tier + ","
-            + "promotion_1 = " + feClass.promotion1 + ","
-            + "promotion_2 = " + feClass.promotion2 + ","
-            + "cap_HP = " + feClass.caps.hitpoints + ","
-            + "cap_STR = " + feClass.caps.strength + ","
-            + "cap_MAG = " + feClass.caps.magic + ","
-            + "cap_SKL = " + feClass.caps.skill + ","
-            + "cap_SPD = " + feClass.caps.speed + ","
-            + "cap_DEF = " + feClass.caps.defence + ","
-            + "cap_RES = " + feClass.caps.resistance + ","
-            + "bonus_HP = " + feClass.bonuses.hitpoints + ","
-            + "bonus_STR = " + feClass.bonuses.strength + ","
-            + "bonus_MAG = " + feClass.bonuses.magic + ","
-            + "bonus_SKL = " + feClass.bonuses.skill + ","
-            + "bonus_SPD = " + feClass.bonuses.speed + ","
-            + "bonus_DEF = " + feClass.bonuses.defence + ","
-            + "bonus_RES = " + feClass.bonuses.resistance + ","
-            + "bonus_CON = " + feClass.bonuses.constitution + ","
-            + "movement = " + feClass.movement + ","
-            + "innate_skill = '" + feClass.innateSkill + "',"
-            + "acquired_skill = '" + feClass.acquiredSkill + "'"
-            + " WHERE id = " + feClass.id + ";"
+                + "name = '" + feClass.name + "',"
+                + "tier = " + feClass.tier + ","
+                + "promotion_1 = " + feClass.promotion1 + ","
+                + "promotion_2 = " + feClass.promotion2 + ","
+                + "cap_HP = " + feClass.caps.hitpoints + ","
+                + "cap_STR = " + feClass.caps.strength + ","
+                + "cap_MAG = " + feClass.caps.magic + ","
+                + "cap_SKL = " + feClass.caps.skill + ","
+                + "cap_SPD = " + feClass.caps.speed + ","
+                + "cap_DEF = " + feClass.caps.defence + ","
+                + "cap_RES = " + feClass.caps.resistance + ","
+                + "bonus_HP = " + feClass.bonuses.hitpoints + ","
+                + "bonus_STR = " + feClass.bonuses.strength + ","
+                + "bonus_MAG = " + feClass.bonuses.magic + ","
+                + "bonus_SKL = " + feClass.bonuses.skill + ","
+                + "bonus_SPD = " + feClass.bonuses.speed + ","
+                + "bonus_DEF = " + feClass.bonuses.defence + ","
+                + "bonus_RES = " + feClass.bonuses.resistance + ","
+                + "bonus_CON = " + feClass.bonuses.constitution + ","
+                + "movement = " + feClass.movement + ","
+                + "innate_skill = '" + feClass.innateSkill + "',"
+                + "acquired_skill = '" + feClass.acquiredSkill + "'"
+                + "weapons = '" + String.join(",", feClass.weapons.stream().map(WeaponType::name).toArray(String[]::new)) + "',"
+                + "categories = '" + String.join(",", feClass.categories.stream().map(ClassCategory::name).toArray(String[]::new)) + "',"
+                + " WHERE id = " + feClass.id + ";"
         );
     }
 
     public static void updateCharacter(FECharacter character) {
         execute("UPDATE character SET "
-            + "name = '" + character.name + "',"
-            + "origin = '" + character.origin + "',"
-            + "start_class = " + character.baseClass.id + ","
-            + "start_level = " + character.baseLevel + ","
-            + "affinity = '" + character.affinity + "',"
-            + "base_HP = " + character.bases.hitpoints + ","
-            + "base_STR = " + character.bases.strength + ","
-            + "base_MAG = " + character.bases.magic + ","
-            + "base_SKL = " + character.bases.skill + ","
-            + "base_SPD = " + character.bases.speed + ","
-            + "base_LUK = " + character.bases.luck + ","
-            + "base_DEF = " + character.bases.defence + ","
-            + "base_RES = " + character.bases.resistance + ","
-            + "base_CON = " + character.bases.constitution + ","
-            + "growth_HP = " + character.growths.hitpoints + ","
-            + "growth_STR = " + character.growths.strength + ","
-            + "growth_MAG = " + character.growths.magic + ","
-            + "growth_SKL = " + character.growths.skill + ","
-            + "growth_SPD = " + character.growths.speed + ","
-            + "growth_LUK = " + character.growths.luck + ","
-            + "growth_DEF = " + character.growths.defence + ","
-            + "growth_RES = " + character.growths.resistance
-            + " WHERE id = " + character.id + ";"
+                + "name = '" + character.name + "',"
+                + "origin = '" + character.origin + "',"
+                + "start_class = " + character.baseClass.id + ","
+                + "start_level = " + character.baseLevel + ","
+                + "affinity = '" + character.affinity + "',"
+                + "base_HP = " + character.bases.hitpoints + ","
+                + "base_STR = " + character.bases.strength + ","
+                + "base_MAG = " + character.bases.magic + ","
+                + "base_SKL = " + character.bases.skill + ","
+                + "base_SPD = " + character.bases.speed + ","
+                + "base_LUK = " + character.bases.luck + ","
+                + "base_DEF = " + character.bases.defence + ","
+                + "base_RES = " + character.bases.resistance + ","
+                + "base_CON = " + character.bases.constitution + ","
+                + "growth_HP = " + character.growths.hitpoints + ","
+                + "growth_STR = " + character.growths.strength + ","
+                + "growth_MAG = " + character.growths.magic + ","
+                + "growth_SKL = " + character.growths.skill + ","
+                + "growth_SPD = " + character.growths.speed + ","
+                + "growth_LUK = " + character.growths.luck + ","
+                + "growth_DEF = " + character.growths.defence + ","
+                + "growth_RES = " + character.growths.resistance
+                + " WHERE id = " + character.id + ";"
         );
     }
 
@@ -419,7 +434,6 @@ public class SQLiteRepository {
                 + "weight = " + weapon.weight + ","
                 + "min_range = " + weapon.minRange + ","
                 + "max_range = " + weapon.maxRange + ","
-                + "effects = '" + String.join(",", weapon.effects.stream().map(Effect::name).toArray(String[]::new)) + "',"
                 + "skill = '" + weapon.skill + "',"
                 + "bonus_STR = " + weapon.bonuses.strength + ","
                 + "bonus_MAG = " + weapon.bonuses.magic + ","
@@ -427,7 +441,10 @@ public class SQLiteRepository {
                 + "bonus_SPD = " + weapon.bonuses.speed + ","
                 + "bonus_LUK = " + weapon.bonuses.luck + ","
                 + "bonus_DEF = " + weapon.bonuses.defence + ","
-                + "bonus_RES = " + weapon.bonuses.resistance
+                + "bonus_RES = " + weapon.bonuses.resistance + ","
+                + "type = '" + weapon.type + "',"
+                + "effects = '" + String.join(",", weapon.effects.stream().map(WeaponEffect::name).toArray(String[]::new)) + "',"
+                + "effectiveness = '" + String.join(",", weapon.effectiveness.stream().map(ClassCategory::name).toArray(String[]::new)) + "'"
                 + " WHERE id = " + weapon.id + ";");
     }
 }

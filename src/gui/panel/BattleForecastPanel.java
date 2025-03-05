@@ -4,7 +4,10 @@ import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -12,9 +15,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import gui.dumb.BorderedPanel;
+import model.FEClass;
 import model.FEWeapon;
 import model.Stats;
 import model.Support.SupportBonus;
+import model.WeaponEffect;
 import utils.TriFunction;
 
 public class BattleForecastPanel extends JPanel {
@@ -107,20 +112,29 @@ public class BattleForecastPanel extends JPanel {
         add(resultPanel);
     }
 
-    public void refresh(Stats statsAttacker, FEWeapon weaponAttacker, SupportBonus supportAttacker,
-                        Stats statsDefender, FEWeapon weaponDefender, SupportBonus supportDefender) {
+    public void refresh(Stats statsAttacker, FEWeapon weaponAttacker, FEClass classAttacker, SupportBonus supportAttacker,
+                        Stats statsDefender, FEWeapon weaponDefender, FEClass classDefender, SupportBonus supportDefender) {
         int attackSpeedAttacker = statsAttacker.speed - statsAttacker.constitution > weaponAttacker.weight ? 0 : statsAttacker.constitution - weaponAttacker.weight;
         int attackSpeedDefender = statsDefender.speed - statsDefender.constitution > weaponDefender.weight ? 0 : statsDefender.constitution - weaponDefender.weight;
 
         boolean attackerDoubles = attackSpeedAttacker > attackSpeedDefender + 3;
         boolean defenderDoubles = attackSpeedDefender > attackSpeedAttacker + 3;
 
+        boolean attackerBrave = weaponAttacker.effects.contains(WeaponEffect.Brave);
+        boolean defenderBrave = weaponDefender.effects.contains(WeaponEffect.Brave);
+
+        int weaponTriangleAttacker = weaponAttacker.type.triangleAdvantageAgainst(weaponDefender.type);
+        int weaponTriangleDefender = -weaponTriangleAttacker;
+
+        int weaponEffectivenessAttacker = classDefender.categories.stream().anyMatch(weaponAttacker.effectiveness::contains) ? 3 : 1;
+        int weaponEffectivenessDefender = classAttacker.categories.stream().anyMatch(weaponDefender.effectiveness::contains) ? 3 : 1;
+
         int hitRateAttacker = computeHitRate(
                 weaponAttacker.hit, statsAttacker.skill, statsAttacker.luck, supportAttacker.hit,
-                attackSpeedDefender, statsDefender.luck, supportDefender.avoid);
+                attackSpeedDefender, statsDefender.luck, supportDefender.avoid, weaponTriangleAttacker);
         int hitRateDefender = computeHitRate(
                 weaponDefender.hit, statsDefender.skill, statsDefender.luck, supportDefender.hit,
-                attackSpeedAttacker, statsAttacker.luck, supportAttacker.avoid);
+                attackSpeedAttacker, statsAttacker.luck, supportAttacker.avoid, weaponTriangleDefender);
 
         int critRateAttacker = computeCritRate(
                 weaponAttacker.crit, statsAttacker.skill, supportAttacker.crit,
@@ -129,8 +143,10 @@ public class BattleForecastPanel extends JPanel {
                 weaponDefender.crit, statsDefender.skill, supportDefender.crit,
                 statsAttacker.luck, supportAttacker.dodge);
 
-        int damageAttacker = Math.max(0, statsAttacker.strength + weaponAttacker.might - statsDefender.defence);
-        int damageDefender = Math.max(0, statsDefender.strength + weaponDefender.might - statsAttacker.defence);
+        int damageAttacker = Math.max(0, (statsAttacker.strength + weaponAttacker.might - statsDefender.defence
+                + weaponTriangleAttacker * 2) * weaponEffectivenessAttacker);
+        int damageDefender = Math.max(0, (statsDefender.strength + weaponDefender.might - statsAttacker.defence
+                + weaponTriangleDefender * 2) * weaponEffectivenessDefender);
 
         this.hitRateAttacker.setText(hitRateAttacker + "%");
         this.hitRateDefender.setText(hitRateDefender + "%");
@@ -142,8 +158,8 @@ public class BattleForecastPanel extends JPanel {
         this.damageDefender.setText(damageDefender + (defenderDoubles ? " x2" : ""));
 
         List<BattleOutcome> outcomes = simulate(
-                statsAttacker.hitpoints, hitRateAttacker, critRateAttacker, damageAttacker, attackerDoubles,
-                statsDefender.hitpoints, hitRateDefender, critRateDefender, damageDefender, defenderDoubles);
+                statsAttacker.hitpoints, hitRateAttacker, critRateAttacker, damageAttacker, attackerDoubles, attackerBrave,
+                statsDefender.hitpoints, hitRateDefender, critRateDefender, damageDefender, defenderDoubles, defenderBrave);
         AtomicInteger iterator = new AtomicInteger(0);
 
         previousButton.addActionListener(ignored -> {
@@ -166,10 +182,11 @@ public class BattleForecastPanel extends JPanel {
     }
 
     private int computeHitRate(int attackerWeaponHit, int attackerSkill, int attackerLuck, int attackerSupportHit,
-                               int defenderAttackSpeed, int defenderLuck, int defenderSupportAvoid) {
+                               int defenderAttackSpeed, int defenderLuck, int defenderSupportAvoid, int weaponTriangleAdvantage) {
         return Math.max(0, Math.min(100,
                 (attackerWeaponHit * 2 + attackerSkill * 4 + attackerLuck + attackerSupportHit
-                        - defenderAttackSpeed * 4 - defenderLuck * 2 - defenderSupportAvoid) / 2));
+                        - defenderAttackSpeed * 4 - defenderLuck * 2 - defenderSupportAvoid
+                        + weaponTriangleAdvantage * 20) / 2));
     }
 
     private int computeCritRate(int attackerWeaponCrit, int attackerSkill, int attackerSupportCrit,
@@ -188,20 +205,20 @@ public class BattleForecastPanel extends JPanel {
     }
 
     private List<BattleOutcome> simulate(
-            int maxHpAttacker, int hitRateAttacker, int critRateAttacker, int damageAttacker, boolean attackerDoubles,
-            int maxHpDefender, int hitRateDefender, int critRateDefender, int damageDefender, boolean defenderDoubles
+            int maxHpAttacker, int hitRateAttacker, int critRateAttacker, int damageAttacker, boolean attackerDoubles, boolean attackerBrave,
+            int maxHpDefender, int hitRateDefender, int critRateDefender, int damageDefender, boolean defenderDoubles, boolean defenderBrave
     ) {
         List<BattleOutcome> outcomes = new LinkedList<>();
         // First attack
         List<BattleOutcome> attackerTurn = simulateAttack(new BattleOutcome(maxHpAttacker, maxHpDefender, 100),
-                hitRateAttacker, critRateAttacker, damageAttacker, BattleOutcome::damageDefender);
+                hitRateAttacker, critRateAttacker, damageAttacker, BattleOutcome::damageDefender, attackerBrave);
         // End battle if defender dies, otherwise second attack
         List<BattleOutcome> defenderTurn = new ArrayList<>();
         for (BattleOutcome outcome : attackerTurn) {
             if (outcome.hpDefender == 0) {
                 outcomes.add(outcome);
             } else {
-                defenderTurn.addAll(simulateAttack(outcome, hitRateDefender, critRateDefender, damageDefender, BattleOutcome::damageAttacker));
+                defenderTurn.addAll(simulateAttack(outcome, hitRateDefender, critRateDefender, damageDefender, BattleOutcome::damageAttacker, defenderBrave));
             }
         }
         // End of battle if attacker dies, otherwise check for follow-up
@@ -210,10 +227,10 @@ public class BattleForecastPanel extends JPanel {
                 outcomes.add(outcome);
             } else {
                 if (attackerDoubles) {
-                    outcomes.addAll(simulateAttack(outcome, hitRateAttacker, critRateAttacker, damageAttacker, BattleOutcome::damageDefender));
+                    outcomes.addAll(simulateAttack(outcome, hitRateAttacker, critRateAttacker, damageAttacker, BattleOutcome::damageDefender, attackerBrave));
                 }
                 else if (defenderDoubles) {
-                    outcomes.addAll(simulateAttack(outcome, hitRateDefender, critRateDefender, damageDefender, BattleOutcome::damageAttacker));
+                    outcomes.addAll(simulateAttack(outcome, hitRateDefender, critRateDefender, damageDefender, BattleOutcome::damageAttacker, defenderBrave));
                 } else {
                     outcomes.add(outcome);
                 }
@@ -222,7 +239,9 @@ public class BattleForecastPanel extends JPanel {
         return outcomes;
     }
 
-    private List<BattleOutcome> simulateAttack(BattleOutcome origin, int hitRate, int critRate, int damage, TriFunction<BattleOutcome, Integer, Float, BattleOutcome> nextOutcome) {
+    private List<BattleOutcome> simulateAttack(BattleOutcome origin, int hitRate, int critRate, int damage,
+                                               TriFunction<BattleOutcome, Integer, Float, BattleOutcome> nextOutcome,
+                                               boolean braveAttack) {
         List<BattleOutcome> outcomes = new ArrayList<>();
         // Miss
         if (hitRate < 100) {
@@ -238,7 +257,20 @@ public class BattleForecastPanel extends JPanel {
                 outcomes.add(nextOutcome.apply(origin, damage * 3, hitRate * critRate / 100f));
             }
         }
-        return outcomes;
+        // Brave weapon
+        if (braveAttack) {
+            outcomes = outcomes.stream().flatMap(outcome ->
+                    simulateAttack(outcome, hitRate, critRate, damage, nextOutcome, false).stream()
+            ).toList();
+        }
+        // Collapse equivalent outcomes
+        return outcomes.stream().collect(Collectors.groupingBy(Function.identity()))
+                .values().stream()
+                .map(equalOutcomes -> new BattleOutcome(
+                        equalOutcomes.getFirst().hpAttacker,
+                        equalOutcomes.getFirst().hpDefender,
+                        equalOutcomes.stream().reduce(0f, (p, outcome) -> p + outcome.percentProbability, Float::sum)))
+                .toList();
     }
 
     record BattleOutcome(int hpAttacker, int hpDefender, float percentProbability) {
@@ -248,6 +280,18 @@ public class BattleForecastPanel extends JPanel {
 
         public BattleOutcome damageDefender(int damage, float probability) {
             return new BattleOutcome(hpAttacker, Math.max(0, hpDefender - damage), probability * percentProbability / 100);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof BattleOutcome that)) return false;
+            return that.hpAttacker == hpAttacker && that.hpDefender == hpDefender;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(hpAttacker, hpDefender);
         }
     }
 }
