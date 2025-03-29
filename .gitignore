@@ -2,3 +2,4 @@
 .vscode
 bin
 *.iml
+*windows-x64_bin.exe

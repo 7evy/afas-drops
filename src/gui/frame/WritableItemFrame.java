@@ -31,22 +31,19 @@ public abstract class WritableItemFrame<T extends FEObject> extends JFrame {
 
         makePanel();
 
-        BorderedButton newTemplateButton = new BorderedButton("New " + label);
+        BorderedButton newTemplateButton = new BorderedButton("New " + label, 50);
         newTemplateButton.addActionListener(this::newTemplate);
 
-        BorderedButton saveButton = new BorderedButton("Write to memory");
+        BorderedButton saveButton = new BorderedButton("Write to memory", 50);
         saveButton.addActionListener(this::save);
 
-        BorderedButton refreshButton = new BorderedButton("Refresh");
+        BorderedButton refreshButton = new BorderedButton("Refresh", 50);
         refreshButton.addActionListener(this::refreshPanel);
 
         BorderedPanel mainLayout = new BorderedPanel(10, 10);
         BorderedPanel subLayout = new BorderedPanel(10, 10);
-        subLayout.no(BorderLayout.EAST);
-        subLayout.no(BorderLayout.WEST);
 
         BorderedPanel buttonContainer = new BorderedPanel(100, 0);
-        buttonContainer.no(BorderLayout.NORTH);
         JPanel subButtonContainer = new JPanel(new GridLayout(1, 3));
         subButtonContainer.add(newTemplateButton);
         subButtonContainer.add(saveButton);

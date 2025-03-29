@@ -18,7 +18,7 @@ import java.util.Map;
 
 public class ClassPanel extends CohesivePanel<FEClass> {
     private BorderedLabeledTextField nameField;
-    private BorderedLabeledTextField tierField;
+    private BorderedLabeledSpinner tierField;
     private BorderedLabeledSpinner movementField;
 
     private Map<Stat, BorderedLabeledSpinner> capFields;
@@ -31,7 +31,7 @@ public class ClassPanel extends CohesivePanel<FEClass> {
     private BorderedLabeledComboBox<Skill> acquiredSkillField;
 
     public ClassPanel() {
-        super(1, 2, 10, 10);
+        super(1, 2, 0, 10);
     }
 
     protected void fill(FEClass display) {
@@ -41,7 +41,7 @@ public class ClassPanel extends CohesivePanel<FEClass> {
         promotionsAndBonuses.setLayout(new BoxLayout(promotionsAndBonuses, BoxLayout.Y_AXIS));
 
         nameField = new BorderedLabeledTextField("Name");
-        tierField = new BorderedLabeledTextField("Tier");
+        tierField = new BorderedLabeledSpinner("Tier", new SpinnerNumberModel(display.tier, 1, 3, 1));
         movementField = new BorderedLabeledSpinner("Movement", new SpinnerNumberModel(display.movement, 0, 10, 1));
         capFields = new LinkedHashMap<>();
         for (Stat stat : Stat.values()) {
@@ -78,7 +78,6 @@ public class ClassPanel extends CohesivePanel<FEClass> {
         promotionsAndBonuses.add(acquiredSkillField);
 
         nameField.inner.setText(display.name);
-        tierField.inner.setText(Integer.toString(display.tier));
 
         add(nameTierAndCaps);
         add(promotionsAndBonuses);
@@ -87,11 +86,10 @@ public class ClassPanel extends CohesivePanel<FEClass> {
     protected void tieActionListeners(FEClass display) {
         nameField.addActionListener(() -> display.name = nameField.inner.getText());
 
-        tierField.addActionListener(() -> {
-            int tier = Integer.parseInt(tierField.inner.getText());
-            display.tier = tier;
-            actualizePromotions(tier);
-        });
+        tierField.addChangeListener(() -> {
+            display.tier = (Integer) tierField.inner.getValue();
+            actualizePromotions(display.tier);
+        }, true);
 
         movementField.addChangeListener(() ->
                 display.movement = (Integer) movementField.inner.getValue(), true);
@@ -119,9 +117,9 @@ public class ClassPanel extends CohesivePanel<FEClass> {
         FEClass[] possiblePromotions = ClassUtils.getTier(tier + 1);
         promotion1Field.removeAllItems();
         promotion2Field.removeAllItems();
-        for (FEClass c : possiblePromotions) {
-            promotion1Field.addItem(c);
-            promotion2Field.addItem(c);
+        for (FEClass promotion : possiblePromotions) {
+            promotion1Field.addItem(promotion);
+            promotion2Field.addItem(promotion);
         };
     }
 }

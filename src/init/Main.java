@@ -19,7 +19,6 @@ public class Main {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
-                
                 SQLiteRepository.initDB();
                 GUI.init();
             } catch (Exception e) {

@@ -65,7 +65,7 @@ public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
                     new SpinnerNumberModel(display.data.bases.get(stat), 0, stat == Stat.CON ? 25 : 50, 1)));
         }
         affinityField = new BorderedLabeledComboBox<>("Affinity", Affinity.values(), display.data.affinity);
-        baseLevelField = new BorderedLabeledSpinner("Starting level", new SpinnerNumberModel(display.data.baseLevel, 1, 60, 1), 60);
+        baseLevelField = new BorderedLabeledSpinner("Starting level", new SpinnerNumberModel(display.data.baseLevel, 1, 60, 1));
         growthFields = new LinkedHashMap<>();
         for (Stat stat : Stat.values()) {
             if (stat != Stat.CON) {
@@ -168,14 +168,20 @@ public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
 
     private void actualizeSecondClass(DisplayCharacter display) {
         FEClass[] options = ClassUtils.getDirectPromotions(baseClassField.getSelectedItem());
-        secondClassField = new BorderedLabeledComboBox<>("Second class", options, display.secondClass);
+        secondClassField.removeAllItems();
+        for (FEClass option : options) {
+            secondClassField.addItem(option);
+        }
         display.secondClass = options[0];
         secondClassField.setSelectedItem(display.secondClass);
     }
 
     private void actualizeThirdClass(DisplayCharacter display) {
         FEClass[] options = ClassUtils.getDirectPromotions(secondClassField.getSelectedItem());
-        thirdClassField = new BorderedLabeledComboBox<>("Third class", options, display.thirdClass);
+        thirdClassField.removeAllItems();
+        for (FEClass option : options) {
+            thirdClassField.addItem(option);
+        }
         display.thirdClass = options[0];
         thirdClassField.setSelectedItem(display.thirdClass);
     }

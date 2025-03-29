@@ -12,18 +12,15 @@ import java.awt.GridLayout;
 public class BorderedLabeledSpinner extends BorderedPanel {
     public final JSpinner inner;
 
-    public BorderedLabeledSpinner(String label, SpinnerModel model, int border) {
-        super(border, 0);
+    public BorderedLabeledSpinner(String label, SpinnerModel model) {
+        super(70, 0);
+        padVertical();
         JPanel subPanel = new JPanel(new GridLayout(1, 2));
         inner = new JSpinner(model);
         JLabel jLabel = new JLabel(label, JLabel.CENTER);
         subPanel.add(jLabel);
         subPanel.add(inner);
         add(subPanel, BorderLayout.CENTER);
-    }
-
-    public BorderedLabeledSpinner(String label, SpinnerModel model) {
-        this(label, model, 90);
     }
 
     public void addChangeListener(Runnable onActionPerformed, boolean highlightChange) {
@@ -35,6 +32,6 @@ public class BorderedLabeledSpinner extends BorderedPanel {
 
     @Override
     public Dimension getMaximumSize() {
-        return new Dimension(400, 45);
+        return new Dimension(150, 45);
     }
 }

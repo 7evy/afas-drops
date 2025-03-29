@@ -20,7 +20,8 @@ public class BorderedLabeledTextField extends BorderedPanel {
     }
 
     public BorderedLabeledTextField(String label) {
-        super(50, 0);
+        super(60, 0);
+        pad();
         JPanel subPanel = new JPanel(new GridLayout(1, 2));
         inner = new JTextField();
         JLabel jLabel = new JLabel(label, JLabel.CENTER);
@@ -47,6 +48,6 @@ public class BorderedLabeledTextField extends BorderedPanel {
 
     @Override
     public Dimension getMaximumSize() {
-        return new Dimension(400, 45);
+        return new Dimension(500, 45);
     }
 }

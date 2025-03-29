@@ -133,8 +133,6 @@ public class SQLiteRepository {
             );
         """);
 
-        execute("DELETE FROM weapon WHERE type = 'null';");
-
         if (countClasses() == 0) {
             newClass();
         }

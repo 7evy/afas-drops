@@ -6,10 +6,15 @@ import java.awt.BorderLayout;
 public class BorderedButton extends BorderedPanel {
     public final JButton inner;
 
-    public BorderedButton(String label) {
-        super(10, 10);
+    public BorderedButton(String label, int border) {
+        super(border, 0);
+        pad();
         inner = new JButton(label);
         add(inner, BorderLayout.CENTER);
+    }
+
+    public BorderedButton(String label) {
+        this(label, 10);
     }
 
     public void addActionListener(Runnable onActionPerformed) {

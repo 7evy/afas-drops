@@ -53,9 +53,6 @@ public class BattleSimulatorFrame extends JFrame {
         defenderLayout.add(characterPanelRight);
 
         BorderedPanel forecastLayout = new BorderedPanel(10, 0);
-        forecastLayout.no(BorderLayout.WEST);
-        forecastLayout.no(BorderLayout.EAST);
-        forecastLayout.no(BorderLayout.SOUTH);
         BorderedButton simButton = new BorderedButton("Simulate");
         simButton.addActionListener(this::launchSimulation);
         forecastLayout.add(simButton, BorderLayout.NORTH);
