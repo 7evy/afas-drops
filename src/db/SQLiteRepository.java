@@ -132,11 +132,8 @@ public class SQLiteRepository {
                 PRIMARY KEY (id)
             );
         """);
-        // TEMPORARY
-        execute("UPDATE class SET weapons = ''; ALTER TABLE class ALTER COLUMN weapons TEXT NOT NULL;");
-        execute("UPDATE class SET categories = ''; ALTER TABLE class ALTER COLUMN categories TEXT NOT NULL;");
-        execute("UPDATE weapon SET type = 'Sword'; ALTER TABLE weapon ALTER COLUMN type TEXT NOT NULL;");
-        execute("UPDATE weapon SET effectiveness = ''; ALTER TABLE effectiveness ALTER COLUMN type TEXT NOT NULL;");
+
+        execute("DELETE FROM weapon WHERE type = 'null';");
 
         if (countClasses() == 0) {
             newClass();
@@ -371,8 +368,8 @@ public class SQLiteRepository {
         execute("UPDATE class SET "
                 + "name = '" + feClass.name + "',"
                 + "tier = " + feClass.tier + ","
-                + "promotion_1 = " + feClass.promotion1 + ","
-                + "promotion_2 = " + feClass.promotion2 + ","
+                + "promotion_1 = " + feClass.getPromotion1() + ","
+                + "promotion_2 = " + feClass.getPromotion2() + ","
                 + "cap_HP = " + feClass.caps.hitpoints + ","
                 + "cap_STR = " + feClass.caps.strength + ","
                 + "cap_MAG = " + feClass.caps.magic + ","
@@ -390,9 +387,9 @@ public class SQLiteRepository {
                 + "bonus_CON = " + feClass.bonuses.constitution + ","
                 + "movement = " + feClass.movement + ","
                 + "innate_skill = '" + feClass.innateSkill + "',"
-                + "acquired_skill = '" + feClass.acquiredSkill + "'"
+                + "acquired_skill = '" + feClass.acquiredSkill + "',"
                 + "weapons = '" + String.join(",", feClass.weapons.stream().map(WeaponType::name).toArray(String[]::new)) + "',"
-                + "categories = '" + String.join(",", feClass.categories.stream().map(ClassCategory::name).toArray(String[]::new)) + "',"
+                + "categories = '" + String.join(",", feClass.categories.stream().map(ClassCategory::name).toArray(String[]::new)) + "'"
                 + " WHERE id = " + feClass.id + ";"
         );
     }

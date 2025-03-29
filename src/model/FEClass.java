@@ -14,6 +14,14 @@ public class FEClass extends FEObject implements DisplayedObject {
     public List<WeaponType> weapons;
     public List<ClassCategory> categories;
 
+    public Integer getPromotion1() {
+        return promotion1 == null ? null : promotion1.id;
+    }
+
+    public Integer getPromotion2() {
+        return promotion2 == null ? null : promotion2.id;
+    }
+
     public FEClass clone() {
         FEClass clone = new FEClass();
         clone.id = id;
