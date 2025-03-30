@@ -15,6 +15,10 @@ public class BorderedPanel extends JPanel {
         add(new JPanel(), BorderLayout.EAST);
     }
 
+    public void pad(String direction) {
+        add(new JPanel(), direction);
+    }
+
     public void padHorizontal() {
         add(new JPanel(), BorderLayout.WEST);
         add(new JPanel(), BorderLayout.EAST);

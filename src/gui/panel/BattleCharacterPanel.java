@@ -36,7 +36,7 @@ public class BattleCharacterPanel extends CohesivePanel<FECharacter> {
 
     @Override
     protected void fill(FECharacter display) {
-        levelField = new BorderedLabeledSpinner("Level", new SpinnerNumberModel(1, 1, 20, 1));
+        levelField = new BorderedLabeledSpinner("Level:", new SpinnerNumberModel(1, 1, 20, 1));
         classField = new BorderedLabeledComboBox<>("Class:",
                 ClassUtils.getPromotionTree(display.baseClass),
                 display.baseClass);
@@ -46,10 +46,12 @@ public class BattleCharacterPanel extends CohesivePanel<FECharacter> {
 
         JPanel supportPanel = new JPanel();
         supportPanel.setLayout(new BoxLayout(supportPanel, BoxLayout.Y_AXIS));
-        supportPanel.add(new JLabel("Support bonus:"));
+        JLabel supportBonusLabel = new JLabel("Support bonus:");
+        supportBonusLabel.setAlignmentX(CENTER_ALIGNMENT);
+        supportPanel.add(supportBonusLabel);
 
         JPanel supportSubPanel = new JPanel();
-        supportSubPanel.setLayout(new BoxLayout(supportSubPanel, BoxLayout.X_AXIS));
+        supportSubPanel.setLayout(new BoxLayout(supportSubPanel, BoxLayout.Y_AXIS));
         supportSubPanel.add(supportRankField);
         supportSubPanel.add(supportAffinityField);
         supportPanel.add(supportSubPanel);

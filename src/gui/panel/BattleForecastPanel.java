@@ -1,6 +1,8 @@
 package gui.panel;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,8 +45,9 @@ public class BattleForecastPanel extends JPanel {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         BorderedPanel hitPanel = new BorderedPanel(0, 2);
+        hitPanel.pad();
+        hitPanel.setMaximumSize(new Dimension(400, 45));
         JPanel hitSubPanel = new JPanel();
-        hitSubPanel.setLayout(new BoxLayout(hitSubPanel, BoxLayout.X_AXIS));
         hitRateAttacker = new JLabel();
         JLabel hitRateLabel = new JLabel("    < Hit >    ");
         hitRateDefender = new JLabel();
@@ -54,8 +57,9 @@ public class BattleForecastPanel extends JPanel {
         hitPanel.add(hitSubPanel, BorderLayout.CENTER);
 
         BorderedPanel critPanel = new BorderedPanel(0, 2);
+        critPanel.pad();
+        critPanel.setMaximumSize(new Dimension(400, 45));
         JPanel critSubPanel = new JPanel();
-        critSubPanel.setLayout(new BoxLayout(critSubPanel, BoxLayout.X_AXIS));
         critRateAttacker = new JLabel();
         JLabel critRateLabel = new JLabel("    < Crit >    ");
         critRateDefender = new JLabel();
@@ -65,9 +69,9 @@ public class BattleForecastPanel extends JPanel {
         critPanel.add(critSubPanel, BorderLayout.CENTER);
 
         BorderedPanel damagePanel = new BorderedPanel(0, 2);
+        damagePanel.pad();
+        damagePanel.setMaximumSize(new Dimension(400, 45));
         JPanel damageSubPanel = new JPanel();
-        damageSubPanel.setLayout(new BoxLayout(damageSubPanel, BoxLayout.X_AXIS));
-        damageSubPanel.setAlignmentY(CENTER_ALIGNMENT);
         damageAttacker = new JLabel();
         JLabel damageLabel = new JLabel("   < Damage >   ");
         damageDefender = new JLabel();
@@ -77,6 +81,8 @@ public class BattleForecastPanel extends JPanel {
         damagePanel.add(damageSubPanel, BorderLayout.CENTER);
 
         BorderedPanel arrowsPanel = new BorderedPanel(0, 2);
+        arrowsPanel.pad();
+        arrowsPanel.setMaximumSize(new Dimension(400, 70));
         JPanel arrowsSubPanel = new JPanel();
         nextButton = new JButton("▶");
         previousButton = new JButton("◀");
@@ -85,9 +91,10 @@ public class BattleForecastPanel extends JPanel {
         arrowsPanel.add(arrowsSubPanel, BorderLayout.CENTER);
 
         resultProbability = new JLabel();
+        resultProbability.setAlignmentX(CENTER_ALIGNMENT);
 
         JPanel hpLeftPanel = new JPanel();
-        hpLeftPanel.setLayout(new BoxLayout(hpLeftPanel, BoxLayout.X_AXIS));
+        hpLeftPanel.setMaximumSize(new Dimension(400, 60));
         hpAttacker = new JLabel();
         JLabel hpLeftLabel = new JLabel("   < HP left >   ");
         hpDefender = new JLabel();
@@ -97,6 +104,7 @@ public class BattleForecastPanel extends JPanel {
 
         JPanel simulationDetailsPanel = new JPanel();
         simulationDetailsPanel.setLayout(new BoxLayout(simulationDetailsPanel, BoxLayout.Y_AXIS));
+        hpLeftPanel.setMaximumSize(new Dimension(400, 45));
         // TODO
 
         JPanel resultPanel = new JPanel();
@@ -114,8 +122,8 @@ public class BattleForecastPanel extends JPanel {
 
     public void refresh(Stats statsAttacker, FEWeapon weaponAttacker, FEClass classAttacker, SupportBonus supportAttacker,
                         Stats statsDefender, FEWeapon weaponDefender, FEClass classDefender, SupportBonus supportDefender) {
-        int attackSpeedAttacker = statsAttacker.speed - statsAttacker.constitution > weaponAttacker.weight ? 0 : statsAttacker.constitution - weaponAttacker.weight;
-        int attackSpeedDefender = statsDefender.speed - statsDefender.constitution > weaponDefender.weight ? 0 : statsDefender.constitution - weaponDefender.weight;
+        int attackSpeedAttacker = statsAttacker.speed + (statsAttacker.constitution > weaponAttacker.weight ? 0 : statsAttacker.constitution - weaponAttacker.weight);
+        int attackSpeedDefender = statsDefender.speed + (statsDefender.constitution > weaponDefender.weight ? 0 : statsDefender.constitution - weaponDefender.weight);
 
         boolean attackerDoubles = attackSpeedAttacker > attackSpeedDefender + 3;
         boolean defenderDoubles = attackSpeedDefender > attackSpeedAttacker + 3;
@@ -142,11 +150,11 @@ public class BattleForecastPanel extends JPanel {
         int critRateDefender = computeCritRate(
                 weaponDefender.crit, statsDefender.skill, supportDefender.crit,
                 statsAttacker.luck, supportAttacker.dodge);
-
-        int damageAttacker = Math.max(0, (statsAttacker.strength + weaponAttacker.might - statsDefender.defence
-                + weaponTriangleAttacker * 2) * weaponEffectivenessAttacker);
-        int damageDefender = Math.max(0, (statsDefender.strength + weaponDefender.might - statsAttacker.defence
-                + weaponTriangleDefender * 2) * weaponEffectivenessDefender);
+        
+        int damageAttacker = computeDamage(statsAttacker, supportAttacker.damage, statsDefender, supportDefender.protection,
+                                           weaponAttacker, weaponEffectivenessAttacker, weaponTriangleAttacker);
+        int damageDefender = computeDamage(statsDefender, supportDefender.damage, statsAttacker, supportAttacker.protection,
+                                           weaponDefender, weaponEffectivenessDefender, weaponTriangleDefender);
 
         this.hitRateAttacker.setText(hitRateAttacker + "%");
         this.hitRateDefender.setText(hitRateDefender + "%");
@@ -162,12 +170,19 @@ public class BattleForecastPanel extends JPanel {
                 statsDefender.hitpoints, hitRateDefender, critRateDefender, damageDefender, defenderDoubles, defenderBrave);
         AtomicInteger iterator = new AtomicInteger(0);
 
+        for (ActionListener al : previousButton.getActionListeners()) {
+            previousButton.removeActionListener(al);
+        }
         previousButton.addActionListener(ignored -> {
             if (iterator.incrementAndGet() >= outcomes.size()) {
                 iterator.set(0);
             }
             refreshResultPanel(outcomes.get(iterator.get()), statsAttacker.hitpoints, statsDefender.hitpoints);
         });
+        
+        for (ActionListener al : nextButton.getActionListeners()) {
+            nextButton.removeActionListener(al);
+        }
         nextButton.addActionListener(ignored -> {
             if (iterator.decrementAndGet() < 0) {
                 iterator.set(outcomes.size() - 1);
@@ -179,6 +194,15 @@ public class BattleForecastPanel extends JPanel {
 
         revalidate();
         repaint();
+    }
+
+    private int computeDamage(Stats attackerStats, int attackerSupportDamage,
+                              Stats defenderStats, int defenderSupportProtection,
+                              FEWeapon weapon, int weaponEffectiveness, int weaponTriangle) {
+        // TODO weapon target stats
+        return Math.max(0, (attackerStats.strength * 2 + attackerSupportDamage
+                + weapon.might * 2 * weaponEffectiveness + weaponTriangle * 4
+                - defenderStats.defence * 2 - defenderSupportProtection) / 2);
     }
 
     private int computeHitRate(int attackerWeaponHit, int attackerSkill, int attackerLuck, int attackerSupportHit,

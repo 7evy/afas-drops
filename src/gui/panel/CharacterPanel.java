@@ -92,6 +92,12 @@ public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
         baseClassField = new BorderedLabeledComboBox<>("Starting class",
                 Main.CLASSES.toArray(FEClass[]::new),
                 display.data.baseClass);
+        secondClassField = new BorderedLabeledComboBox<>("Second class",
+                new FEClass[]{display.secondClass},
+                display.secondClass);
+        thirdClassField = new BorderedLabeledComboBox<>("Third class",
+                new FEClass[]{display.thirdClass},
+                display.thirdClass);
 
         actualizeSecondClass(display);
         actualizeThirdClass(display);

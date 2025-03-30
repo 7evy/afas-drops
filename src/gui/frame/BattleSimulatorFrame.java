@@ -36,6 +36,8 @@ public class BattleSimulatorFrame extends JFrame {
 
         FECharacter[] characters = Main.CHARACTERS.toArray(FECharacter[]::new);
 
+        BorderedPanel attackerPanel = new BorderedPanel(0, 0);
+        attackerPanel.pad(BorderLayout.WEST);
         JPanel attackerLayout = new JPanel();
         attackerLayout.setLayout(new BoxLayout(attackerLayout, BoxLayout.Y_AXIS));
         characterLeft = new BorderedLabeledComboBox<>("Attacker:", characters, Main.CHARACTERS.getFirst());
@@ -43,7 +45,10 @@ public class BattleSimulatorFrame extends JFrame {
                 characterPanelLeft.refresh(characterLeft.getSelectedItem()), false);
         attackerLayout.add(characterLeft);
         attackerLayout.add(characterPanelLeft);
+        attackerPanel.add(attackerLayout, BorderLayout.CENTER);
 
+        BorderedPanel defenderPanel = new BorderedPanel(0, 0);
+        defenderPanel.pad(BorderLayout.EAST);
         JPanel defenderLayout = new JPanel();
         defenderLayout.setLayout(new BoxLayout(defenderLayout, BoxLayout.Y_AXIS));
         characterRight = new BorderedLabeledComboBox<>("Defender:", characters, Main.CHARACTERS.getFirst());
@@ -51,17 +56,18 @@ public class BattleSimulatorFrame extends JFrame {
                 characterPanelRight.refresh(characterRight.getSelectedItem()), false);
         defenderLayout.add(characterRight);
         defenderLayout.add(characterPanelRight);
+        defenderPanel.add(defenderLayout, BorderLayout.CENTER);
 
-        BorderedPanel forecastLayout = new BorderedPanel(10, 0);
+        BorderedPanel forecastPanel = new BorderedPanel(10, 0);
         BorderedButton simButton = new BorderedButton("Simulate");
         simButton.addActionListener(this::launchSimulation);
-        forecastLayout.add(simButton, BorderLayout.NORTH);
-        forecastLayout.add(battleForecastPanel, BorderLayout.CENTER);
+        forecastPanel.add(simButton, BorderLayout.NORTH);
+        forecastPanel.add(battleForecastPanel, BorderLayout.CENTER);
 
         JPanel mainLayout = new JPanel(new GridLayout(1, 3));
-        mainLayout.add(attackerLayout);
-        mainLayout.add(forecastLayout);
-        mainLayout.add(defenderLayout);
+        mainLayout.add(attackerPanel);
+        mainLayout.add(forecastPanel);
+        mainLayout.add(defenderPanel);
 
         characterPanelLeft.refresh(Main.CHARACTERS.getFirst());
         characterPanelRight.refresh(Main.CHARACTERS.getFirst());
