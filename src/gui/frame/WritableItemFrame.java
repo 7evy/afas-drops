@@ -16,6 +16,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class WritableItemFrame<T extends FEObject> extends JFrame {
 
@@ -73,10 +75,8 @@ public abstract class WritableItemFrame<T extends FEObject> extends JFrame {
 
     private void refreshListModel() {
         listModel.clear();
-        List<T> allObjects = fetch();
-        listModel.addAll(allObjects.stream()
-                .map(c -> c.name)
-                .toList());
+        Set<String> allItems = fetch();
+        listModel.addAll(allItems);
     }
 
     private void newTemplate() {
@@ -104,7 +104,7 @@ public abstract class WritableItemFrame<T extends FEObject> extends JFrame {
 
     protected abstract void refreshPanel();
 
-    protected abstract List<T> fetch();
+    protected abstract Set<String> fetch();
 
     protected abstract void create();
 

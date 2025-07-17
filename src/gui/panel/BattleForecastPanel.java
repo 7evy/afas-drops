@@ -1,28 +1,22 @@
 package gui.panel;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
+import gui.dumb.BorderedPanel;
+import model.FEClass;
+import model.FEWeapon;
+import model.Skill;
+import model.Stats;
+import model.Support.SupportBonus;
+import model.WeaponEffect;
+import utils.QuadriFunction;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-
-import gui.dumb.BorderedPanel;
-import model.FEClass;
-import model.FEWeapon;
-import model.Stats;
-import model.Support.SupportBonus;
-import model.WeaponEffect;
-import utils.TriFunction;
+import java.util.stream.Stream;
 
 public class BattleForecastPanel extends JPanel {
 
@@ -39,6 +33,8 @@ public class BattleForecastPanel extends JPanel {
     private final JLabel critRateDefender;
     private final JLabel damageDefender;
     private final JLabel hpDefender;
+
+    private final JList<String> simulationDetails;
 
     public BattleForecastPanel() {
         super();
@@ -94,7 +90,7 @@ public class BattleForecastPanel extends JPanel {
         resultProbability.setAlignmentX(CENTER_ALIGNMENT);
 
         JPanel hpLeftPanel = new JPanel();
-        hpLeftPanel.setMaximumSize(new Dimension(400, 60));
+        hpLeftPanel.setMaximumSize(new Dimension(400, 45));
         hpAttacker = new JLabel();
         JLabel hpLeftLabel = new JLabel("   < HP left >   ");
         hpDefender = new JLabel();
@@ -104,8 +100,8 @@ public class BattleForecastPanel extends JPanel {
 
         JPanel simulationDetailsPanel = new JPanel();
         simulationDetailsPanel.setLayout(new BoxLayout(simulationDetailsPanel, BoxLayout.Y_AXIS));
-        hpLeftPanel.setMaximumSize(new Dimension(400, 45));
-        // TODO
+        simulationDetails = new JList<>();
+        simulationDetails.setEnabled(false);
 
         JPanel resultPanel = new JPanel();
         resultPanel.setLayout(new BoxLayout(resultPanel, BoxLayout.Y_AXIS));
@@ -226,6 +222,9 @@ public class BattleForecastPanel extends JPanel {
 
         this.hpAttacker.setText(result.hpAttacker + "/" + maxHpAttacker);
         this.hpDefender.setText(result.hpDefender + "/" + maxHpDefender);
+        this.simulationDetails.setListData(result.logs.stream()
+                .flatMap(BattleLog::asStrings)
+                .toArray(String[]::new));
     }
 
     private List<BattleOutcome> simulate(
@@ -234,15 +233,16 @@ public class BattleForecastPanel extends JPanel {
     ) {
         List<BattleOutcome> outcomes = new LinkedList<>();
         // First attack
-        List<BattleOutcome> attackerTurn = simulateAttack(new BattleOutcome(maxHpAttacker, maxHpDefender, 100),
-                hitRateAttacker, critRateAttacker, damageAttacker, BattleOutcome::damageDefender, attackerBrave);
+        List<BattleOutcome> attackerTurn = simulateAttack(
+                new BattleOutcome(maxHpAttacker, maxHpDefender, 100, new ArrayList<>()),
+                hitRateAttacker, critRateAttacker, damageAttacker, attackerBrave, true);
         // End battle if defender dies, otherwise second attack
         List<BattleOutcome> defenderTurn = new ArrayList<>();
         for (BattleOutcome outcome : attackerTurn) {
             if (outcome.hpDefender == 0) {
                 outcomes.add(outcome);
             } else {
-                defenderTurn.addAll(simulateAttack(outcome, hitRateDefender, critRateDefender, damageDefender, BattleOutcome::damageAttacker, defenderBrave));
+                defenderTurn.addAll(simulateAttack(outcome, hitRateDefender, critRateDefender, damageDefender, defenderBrave, false));
             }
         }
         // End of battle if attacker dies, otherwise check for follow-up
@@ -251,10 +251,10 @@ public class BattleForecastPanel extends JPanel {
                 outcomes.add(outcome);
             } else {
                 if (attackerDoubles) {
-                    outcomes.addAll(simulateAttack(outcome, hitRateAttacker, critRateAttacker, damageAttacker, BattleOutcome::damageDefender, attackerBrave));
+                    outcomes.addAll(simulateAttack(outcome, hitRateAttacker, critRateAttacker, damageAttacker, attackerBrave, true));
                 }
                 else if (defenderDoubles) {
-                    outcomes.addAll(simulateAttack(outcome, hitRateDefender, critRateDefender, damageDefender, BattleOutcome::damageAttacker, defenderBrave));
+                    outcomes.addAll(simulateAttack(outcome, hitRateDefender, critRateDefender, damageDefender, defenderBrave, false));
                 } else {
                     outcomes.add(outcome);
                 }
@@ -263,59 +263,99 @@ public class BattleForecastPanel extends JPanel {
         return outcomes;
     }
 
-    private List<BattleOutcome> simulateAttack(BattleOutcome origin, int hitRate, int critRate, int damage,
-                                               TriFunction<BattleOutcome, Integer, Float, BattleOutcome> nextOutcome,
-                                               boolean braveAttack) {
+    private List<BattleOutcome> simulateAttack(BattleOutcome origin, int hitRate, int critRate, int damage, boolean braveAttack, boolean attacker) {
         List<BattleOutcome> outcomes = new ArrayList<>();
+        QuadriFunction<BattleOutcome, Integer, Float, BattleLog, BattleOutcome> nextOutcome =
+                attacker ? BattleOutcome::damageDefender : BattleOutcome::damageAttacker;
         // Miss
         if (hitRate < 100) {
-            outcomes.add(nextOutcome.apply(origin, 0, (float) (100 - hitRate)));
+            outcomes.add(nextOutcome.apply(origin, 0, (float) (100 - hitRate), BattleLog.miss(attacker)));
         }
         if (hitRate > 0) {
             // Normal hit
             if (critRate < 100) {
-                outcomes.add(nextOutcome.apply(origin, damage, hitRate * (100 - critRate) / 100f));
+                outcomes.add(nextOutcome.apply(origin, damage, hitRate * (100 - critRate) / 100f, BattleLog.flatDamage(attacker, damage)));
             }
             // Crit
             if (critRate > 0) {
-                outcomes.add(nextOutcome.apply(origin, damage * 3, hitRate * critRate / 100f));
+                outcomes.add(nextOutcome.apply(origin, damage * 3, hitRate * critRate / 100f, BattleLog.crit(attacker, damage)));
             }
         }
         // Brave weapon
         if (braveAttack) {
             outcomes = outcomes.stream().flatMap(outcome ->
-                    simulateAttack(outcome, hitRate, critRate, damage, nextOutcome, false).stream()
+                    simulateAttack(outcome, hitRate, critRate, damage, false, attacker).stream()
             ).toList();
         }
-        // Collapse equivalent outcomes
-        return outcomes.stream().collect(Collectors.groupingBy(Function.identity()))
-                .values().stream()
-                .map(equalOutcomes -> new BattleOutcome(
-                        equalOutcomes.getFirst().hpAttacker,
-                        equalOutcomes.getFirst().hpDefender,
-                        equalOutcomes.stream().reduce(0f, (p, outcome) -> p + outcome.percentProbability, Float::sum)))
-                .toList();
+        return outcomes;
     }
 
-    record BattleOutcome(int hpAttacker, int hpDefender, float percentProbability) {
-        public BattleOutcome damageAttacker(int damage, float probability) {
-            return new BattleOutcome(Math.max(0, hpAttacker - damage), hpDefender, probability * percentProbability / 100);
+    record BattleOutcome(int hpAttacker, int hpDefender, float percentProbability, List<BattleLog> logs) {
+        public BattleOutcome damageAttacker(int damage, float probability, BattleLog newLog) {
+            List<BattleLog> nextLogs = new ArrayList<>(logs);
+            nextLogs.add(newLog);
+            return new BattleOutcome(Math.max(0, hpAttacker - damage), hpDefender, probability * percentProbability / 100, nextLogs);
         }
 
-        public BattleOutcome damageDefender(int damage, float probability) {
-            return new BattleOutcome(hpAttacker, Math.max(0, hpDefender - damage), probability * percentProbability / 100);
+        public BattleOutcome damageDefender(int damage, float probability, BattleLog newLog) {
+            List<BattleLog> nextLogs = new ArrayList<>(logs);
+            nextLogs.add(newLog);
+            return new BattleOutcome(hpAttacker, Math.max(0, hpDefender - damage), probability * percentProbability / 100, nextLogs);
+        }
+    }
+
+    record BattleLog(boolean attacker, int damage, boolean miss, boolean crit, Skill attackerSkill, Skill defenderSkill) {
+        public BattleLog(boolean attacker, int damage, boolean miss, boolean crit, Skill attackerSkill, Skill defenderSkill) {
+            this.attacker = attacker;
+            this.damage = damage;
+            this.miss = miss;
+            this.crit = crit;
+            this.attackerSkill = attackerSkill;
+            this.defenderSkill = defenderSkill;
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof BattleOutcome that)) return false;
-            return that.hpAttacker == hpAttacker && that.hpDefender == hpDefender;
+        public static BattleLog flatDamage(boolean attacker, int damage) {
+            return new BattleLog(attacker, damage, false, false, Skill.None, Skill.None);
         }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(hpAttacker, hpDefender);
+        public static BattleLog crit(boolean attacker, int damage) {
+            return new BattleLog(attacker, damage, false, true, Skill.None, Skill.None);
+        }
+
+        public static BattleLog miss(boolean attacker) {
+            return new BattleLog(attacker, 0, true, false, Skill.None, Skill.None);
+        }
+
+        public Stream<String> asStrings() {
+            List<String> logs = new ArrayList<>();
+            // TODO get character name
+            String firstActorName = attacker ? "Attacker" : "Defender";
+            String secondActorName = attacker ? "attacker" : "defender";
+            if (miss) {
+                logs.add(firstActorName + " missed.");
+            } else if (crit) {
+                if (attacker && attackerSkill != Skill.None) {
+                    logs.add(firstActorName + " crit with " + attackerSkill + " for " + damage + " damage.");
+                } else if (!attacker && defenderSkill != Skill.None) {
+                    logs.add(firstActorName + " crit with " + defenderSkill + " for " + damage + " damage.");
+                } else {
+                    logs.add(firstActorName + " crit for " + damage + " damage.");
+                }
+            } else {
+                if (attacker && attackerSkill != Skill.None) {
+                    logs.add(firstActorName + " attacked for " + damage + " damage with " + attackerSkill + ".");
+                } else if (!attacker && defenderSkill != Skill.None) {
+                    logs.add(firstActorName + " attacked for " + damage + " damage with " + defenderSkill + ".");
+                } else {
+                    logs.add(firstActorName + " attacked for " + damage + " damage.");
+                }
+            }
+            if (attacker && defenderSkill != Skill.None) {
+                logs.add(secondActorName + " triggered " + defenderSkill + ".");
+            } else if (!attacker && attackerSkill != Skill.None) {
+                logs.add(secondActorName + " triggered " + attackerSkill + ".");
+            }
+            return logs.stream();
         }
     }
 }

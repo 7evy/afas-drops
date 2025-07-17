@@ -11,11 +11,13 @@ public class ClassUtils {
     private ClassUtils() {}
 
     public static FEClass findByName(String name) {
-        return Main.CLASSES.stream().filter(c -> c.name.equals(name)).findFirst().orElse(null);
+        return Main.CLASSES.get(name);
     }
 
     public static FEClass[] getTier(int tier) {
-        return Main.CLASSES.stream().filter(c -> c.tier == tier).toArray(FEClass[]::new);
+        return Main.CLASSES.values().stream()
+                .filter(c -> c.tier == tier)
+                .toArray(FEClass[]::new);
     }
 
     public static FEClass[] getDirectPromotions(FEClass origin) {
@@ -23,6 +25,13 @@ public class ClassUtils {
             origin == null ? null : origin.promotion1,
             origin == null ? null : origin.promotion2
         };
+    }
+
+    public static FEClass getOriginClass(FEClass promotion) {
+        return Main.CLASSES.values().stream()
+                .filter(c -> c.promotion1.equals(promotion) || c.promotion2.equals(promotion))
+                .findFirst()
+                .orElseThrow();
     }
 
     public static FEClass[] getPromotionTree(FEClass origin) {

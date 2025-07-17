@@ -10,6 +10,7 @@ import utils.CharacterUtils;
 import utils.ClassUtils;
 
 import java.util.List;
+import java.util.Set;
 
 public class CharactersFrame extends WritableItemFrame<FECharacter> {
 
@@ -37,8 +38,8 @@ public class CharactersFrame extends WritableItemFrame<FECharacter> {
     }
 
     @Override
-    protected List<FECharacter> fetch() {
-        return SQLiteRepository.fetchAllCharacters(Main.CLASSES);
+    protected Set<String> fetch() {
+        return SQLiteRepository.fetchAllCharacters(Main.CLASSES).keySet();
     }
 
     @Override

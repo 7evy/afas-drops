@@ -90,7 +90,7 @@ public class CharacterPanel extends CohesivePanel<DisplayCharacter> {
         secondClassLevelField = new BorderedLabeledSpinner("At level", new SpinnerNumberModel(20, 1, 20, 1));
         thirdClassLevelField = new BorderedLabeledSpinner("At level", new SpinnerNumberModel(20, 1, 20, 1));
         baseClassField = new BorderedLabeledComboBox<>("Starting class",
-                Main.CLASSES.toArray(FEClass[]::new),
+                Main.CLASSES.values().toArray(FEClass[]::new),
                 display.data.baseClass);
         secondClassField = new BorderedLabeledComboBox<>("Second class",
                 new FEClass[]{display.secondClass},

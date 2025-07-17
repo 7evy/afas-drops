@@ -6,6 +6,8 @@ import model.FEClass;
 import utils.ClassUtils;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ClassesFrame extends WritableItemFrame<FEClass> {
 
@@ -32,8 +34,8 @@ public class ClassesFrame extends WritableItemFrame<FEClass> {
     }
 
     @Override
-    protected List<FEClass> fetch() {
-        return SQLiteRepository.fetchAllClasses();
+    protected Set<String> fetch() {
+        return SQLiteRepository.fetchAllClasses().keySet();
     }
 
     @Override

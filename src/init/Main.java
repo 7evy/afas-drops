@@ -6,15 +6,14 @@ import model.FECharacter;
 import model.FEClass;
 import model.FEWeapon;
 
-import javax.swing.SwingUtilities;
-
-import java.util.ArrayList;
-import java.util.List;
+import javax.swing.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Main {
-    public static List<FEClass> CLASSES = new ArrayList<>();
-    public static List<FECharacter> CHARACTERS = new ArrayList<>();
-    public static List<FEWeapon> WEAPONS = new ArrayList<>();
+    public static Map<String, FEClass> CLASSES = new HashMap<>();
+    public static Map<String, FECharacter> CHARACTERS = new HashMap<>();
+    public static Map<String, FEWeapon> WEAPONS = new HashMap<>();
  
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

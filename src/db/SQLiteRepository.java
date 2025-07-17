@@ -18,7 +18,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SQLiteRepository {
     private static final String SQLITE_DB_FILE_PATH = "jdbc:sqlite:sqlite/afasdrops.db";
@@ -146,22 +150,23 @@ public class SQLiteRepository {
         }
     }
 
-    public static List<FEClass> fetchAllClasses() {
+    public static Map<String, FEClass> fetchAllClasses() {
         try (Connection conn = DriverManager.getConnection(SQLITE_DB_FILE_PATH);
             Statement stmt = conn.createStatement()
         ) {
             ResultSet rs = stmt.executeQuery("SELECT * FROM class ORDER BY id;");
-            List<FEClass> allClasses = new ArrayList<>();
-            List<Integer> firstPromotions = new ArrayList<>();
-            List<Integer> secondPromotions = new ArrayList<>();
+            Map<String, FEClass> allClasses = new HashMap<>();
+            Map<String, Integer> firstPromotionIds = new HashMap<>();
+            Map<String, Integer> secondPromotionIds = new HashMap<>();
             while (rs.next()) {
-                allClasses.add(extractClass(rs));
+                FEClass feClass = extractClass(rs);
+                allClasses.put(feClass.name, feClass);
                 int firstPromotion = rs.getInt("promotion_1");
-                firstPromotions.add(rs.wasNull() ? null : firstPromotion);
+                firstPromotionIds.put(feClass.name, rs.wasNull() ? null : firstPromotion);
                 int secondPromotion = rs.getInt("promotion_2");
-                secondPromotions.add(rs.wasNull() ? null : secondPromotion);
+                secondPromotionIds.put(feClass.name, rs.wasNull() ? null : secondPromotion);
             }
-            extractPromotions(allClasses, firstPromotions, secondPromotions);
+            extractPromotions(allClasses, firstPromotionIds, secondPromotionIds);
             Main.CLASSES = allClasses;
             return allClasses;
         } catch (SQLException e) {
@@ -169,14 +174,16 @@ public class SQLiteRepository {
         }
     }
 
-    public static List<FECharacter> fetchAllCharacters(List<FEClass> allClasses) {
+    public static Map<String, FECharacter> fetchAllCharacters(Map<String, FEClass> allClasses) {
         try (Connection conn = DriverManager.getConnection(SQLITE_DB_FILE_PATH);
             Statement stmt = conn.createStatement()
         ) {
             ResultSet rs = stmt.executeQuery("SELECT * FROM character ORDER BY id;");
-            List<FECharacter> allCharacters = new ArrayList<>();
+            Map<String, FECharacter> allCharacters = new HashMap<>();
             while (rs.next()) {
-                allCharacters.add(extractCharacter(rs, allClasses));
+                FECharacter character = extractCharacter(rs, allClasses.values().stream()
+                        .collect(Collectors.toMap(c -> c.id, c -> c)));
+                allCharacters.put(character.name, character);
             }
             Main.CHARACTERS = allCharacters;
             return allCharacters;
@@ -185,14 +192,15 @@ public class SQLiteRepository {
         }
     }
 
-    public static List<FEWeapon> fetchAllWeapons() {
+    public static Map<String, FEWeapon> fetchAllWeapons() {
         try (Connection conn = DriverManager.getConnection(SQLITE_DB_FILE_PATH);
             Statement stmt = conn.createStatement()
         ) {
             ResultSet rs = stmt.executeQuery("SELECT * FROM weapon ORDER BY id;");
-            List<FEWeapon> allWeapons = new ArrayList<>();
+            Map<String, FEWeapon> allWeapons = new HashMap<>();
             while (rs.next()) {
-                allWeapons.add(extractWeapon(rs));
+                FEWeapon weapon = extractWeapon(rs);
+                allWeapons.put(weapon.name, weapon);
             }
             Main.WEAPONS = allWeapons;
             return allWeapons;
@@ -201,7 +209,7 @@ public class SQLiteRepository {
         }
     }
 
-    private static FECharacter extractCharacter(ResultSet rs, List<FEClass> allClasses) throws SQLException {
+    private static FECharacter extractCharacter(ResultSet rs, Map<Integer, FEClass> allClassesById) throws SQLException {
         FECharacter character = new FECharacter();
         character.id = rs.getInt("id");
         character.name = rs.getString("name");
@@ -230,7 +238,7 @@ public class SQLiteRepository {
             rs.getInt("growth_RES"),
             0
         );
-        character.baseClass = allClasses.get(rs.getInt("start_class"));
+        character.baseClass = allClassesById.get(rs.getInt("start_class"));
         return character;
     }
 
@@ -310,16 +318,16 @@ public class SQLiteRepository {
     }
 
     private static void extractPromotions(
-        List<FEClass> allClasses,
-        List<Integer> firstPromotions,
-        List<Integer> secondPromotions
+        Map<String, FEClass> allClasses,
+        Map<String, Integer> firstPromotionIds,
+        Map<String, Integer> secondPromotionIds
     ) throws SQLException {
-        for (int i = 0; i < allClasses.size(); i++) {
-            FEClass currentClass = allClasses.get(i);
-            currentClass.promotion1 = firstPromotions.get(i) == null ?
-                    null : allClasses.get(firstPromotions.get(i));
-            currentClass.promotion2 = secondPromotions.get(i) == null ?
-                    null : allClasses.get(secondPromotions.get(i));
+        Map<Integer, FEClass> allClassesById = allClasses.values().stream()
+                .collect(Collectors.toMap(c -> c.id, c -> c));
+        allClassesById.put(null, null);
+        for (FEClass currentClass : allClasses.values()) {
+            currentClass.promotion1 = allClassesById.get(firstPromotionIds.get(currentClass.name));
+            currentClass.promotion2 = allClassesById.get(secondPromotionIds.get(currentClass.name));
         }
     }
 

@@ -6,6 +6,7 @@ import model.FEWeapon;
 import utils.WeaponUtils;
 
 import java.util.List;
+import java.util.Set;
 
 public class WeaponsFrame extends WritableItemFrame<FEWeapon> {
 
@@ -32,8 +33,8 @@ public class WeaponsFrame extends WritableItemFrame<FEWeapon> {
     }
 
     @Override
-    protected List<FEWeapon> fetch() {
-        return SQLiteRepository.fetchAllWeapons();
+    protected Set<String> fetch() {
+        return SQLiteRepository.fetchAllWeapons().keySet();
     }
 
     @Override

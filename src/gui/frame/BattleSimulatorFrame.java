@@ -34,13 +34,13 @@ public class BattleSimulatorFrame extends JFrame {
         characterPanelRight = new BattleCharacterPanel();
         battleForecastPanel = new BattleForecastPanel();
 
-        FECharacter[] characters = Main.CHARACTERS.toArray(FECharacter[]::new);
+        FECharacter[] characters = Main.CHARACTERS.values().toArray(FECharacter[]::new);
 
         BorderedPanel attackerPanel = new BorderedPanel(0, 0);
         attackerPanel.pad(BorderLayout.WEST);
         JPanel attackerLayout = new JPanel();
         attackerLayout.setLayout(new BoxLayout(attackerLayout, BoxLayout.Y_AXIS));
-        characterLeft = new BorderedLabeledComboBox<>("Attacker:", characters, Main.CHARACTERS.getFirst());
+        characterLeft = new BorderedLabeledComboBox<>("Attacker:", characters, characters[0]);
         characterLeft.addActionListener(() ->
                 characterPanelLeft.refresh(characterLeft.getSelectedItem()), false);
         attackerLayout.add(characterLeft);
@@ -51,7 +51,7 @@ public class BattleSimulatorFrame extends JFrame {
         defenderPanel.pad(BorderLayout.EAST);
         JPanel defenderLayout = new JPanel();
         defenderLayout.setLayout(new BoxLayout(defenderLayout, BoxLayout.Y_AXIS));
-        characterRight = new BorderedLabeledComboBox<>("Defender:", characters, Main.CHARACTERS.getFirst());
+        characterRight = new BorderedLabeledComboBox<>("Defender:", characters, characters[0]);
         characterRight.addActionListener(() ->
                 characterPanelRight.refresh(characterRight.getSelectedItem()), false);
         defenderLayout.add(characterRight);
@@ -69,8 +69,8 @@ public class BattleSimulatorFrame extends JFrame {
         mainLayout.add(forecastPanel);
         mainLayout.add(defenderPanel);
 
-        characterPanelLeft.refresh(Main.CHARACTERS.getFirst());
-        characterPanelRight.refresh(Main.CHARACTERS.getFirst());
+        characterPanelLeft.refresh(characters[0]);
+        characterPanelRight.refresh(characters[0]);
 
         launchSimulation();
 

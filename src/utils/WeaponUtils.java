@@ -7,6 +7,6 @@ public class WeaponUtils {
     private WeaponUtils() {}
 
     public static FEWeapon findByName(String name) {
-        return Main.WEAPONS.stream().filter(c -> c.name.equals(name)).findFirst().orElse(null);
+        return Main.WEAPONS.get(name);
     }
 }

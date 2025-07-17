@@ -40,7 +40,9 @@ public class BattleCharacterPanel extends CohesivePanel<FECharacter> {
         classField = new BorderedLabeledComboBox<>("Class:",
                 ClassUtils.getPromotionTree(display.baseClass),
                 display.baseClass);
-        weaponField = new BorderedLabeledComboBox<>("Weapon:", Main.WEAPONS.toArray(FEWeapon[]::new), Main.WEAPONS.getFirst());
+
+        FEWeapon[] weaponOptions = Main.WEAPONS.values().toArray(FEWeapon[]::new);
+        weaponField = new BorderedLabeledComboBox<>("Weapon:", weaponOptions, weaponOptions[0]);
         supportRankField = new BorderedLabeledComboBox<>("Rank:", SupportRank.values(), SupportRank.None);
         supportAffinityField = new BorderedLabeledComboBox<>("Affinity:", Affinity.values(), Affinity.Light);
 
@@ -119,7 +121,7 @@ public class BattleCharacterPanel extends CohesivePanel<FECharacter> {
         if (selectedClass.tier == 2) {
             return Stats.computeSecondClassAtLevel(character, level, selectedClass.bonuses, selectedClass.caps);
         }
-        FEClass secondClass = Main.CLASSES.stream().filter(c -> c.promotion1.equals(selectedClass) || c.promotion2.equals(selectedClass)).findFirst().orElseThrow();
-        return Stats.computeThirdClassAtLevel(character, level, secondClass.bonuses,selectedClass.bonuses, secondClass.caps, selectedClass.caps);
+        FEClass secondClass = ClassUtils.getOriginClass(selectedClass);
+        return Stats.computeThirdClassAtLevel(character, level, secondClass.bonuses, selectedClass.bonuses, secondClass.caps, selectedClass.caps);
     }
 }
