@@ -5,6 +5,7 @@ import model.FEClass;
 import model.FEWeapon;
 import model.Skill;
 import model.Stats;
+import model.Stats.Stat;
 import model.Support.SupportBonus;
 import model.WeaponEffect;
 import utils.QuadriFunction;
@@ -161,9 +162,10 @@ public class BattleForecastPanel extends JPanel {
         this.damageAttacker.setText(damageAttacker + (attackerDoubles ? " x2" : ""));
         this.damageDefender.setText(damageDefender + (defenderDoubles ? " x2" : ""));
 
+        // TODO transform into class
         List<BattleOutcome> outcomes = simulate(
-                statsAttacker.hitpoints, hitRateAttacker, critRateAttacker, damageAttacker, attackerDoubles, attackerBrave,
-                statsDefender.hitpoints, hitRateDefender, critRateDefender, damageDefender, defenderDoubles, defenderBrave);
+                statsAttacker, hitRateAttacker, critRateAttacker, damageAttacker, attackerDoubles, attackerBrave,
+                statsDefender, hitRateDefender, critRateDefender, damageDefender, defenderDoubles, defenderBrave);
         AtomicInteger iterator = new AtomicInteger(0);
 
         for (ActionListener al : previousButton.getActionListeners()) {
@@ -195,10 +197,17 @@ public class BattleForecastPanel extends JPanel {
     private int computeDamage(Stats attackerStats, int attackerSupportDamage,
                               Stats defenderStats, int defenderSupportProtection,
                               FEWeapon weapon, int weaponEffectiveness, int weaponTriangle) {
-        // TODO weapon target stats
-        return Math.max(0, (attackerStats.strength * 2 + attackerSupportDamage
+        Stat effectiveStat =
+                weapon.effects.contains(WeaponEffect.UsesMag) ? Stat.MAG :
+                        weapon.effects.contains(WeaponEffect.UsesStr) ? Stat.STR :
+                                weapon.type.effectiveStat;
+        Stat targetStat =
+                weapon.effects.contains(WeaponEffect.TargetsRes) ? Stat.RES :
+                        weapon.effects.contains(WeaponEffect.TargetsDef) ? Stat.DEF :
+                                weapon.type.targetStat;
+        return Math.max(0, (attackerStats.get(effectiveStat) * 2 + attackerSupportDamage
                 + weapon.might * 2 * weaponEffectiveness + weaponTriangle * 4
-                - defenderStats.defence * 2 - defenderSupportProtection) / 2);
+                - defenderStats.get(targetStat) * 2 - defenderSupportProtection) / 2);
     }
 
     private int computeHitRate(int attackerWeaponHit, int attackerSkill, int attackerLuck, int attackerSupportHit,
@@ -228,21 +237,21 @@ public class BattleForecastPanel extends JPanel {
     }
 
     private List<BattleOutcome> simulate(
-            int maxHpAttacker, int hitRateAttacker, int critRateAttacker, int damageAttacker, boolean attackerDoubles, boolean attackerBrave,
-            int maxHpDefender, int hitRateDefender, int critRateDefender, int damageDefender, boolean defenderDoubles, boolean defenderBrave
+            Stats attackerStats, int hitRateAttacker, int critRateAttacker, int damageAttacker, boolean attackerDoubles, boolean attackerBrave,
+            Stats defenderStats, int hitRateDefender, int critRateDefender, int damageDefender, boolean defenderDoubles, boolean defenderBrave
     ) {
         List<BattleOutcome> outcomes = new LinkedList<>();
         // First attack
         List<BattleOutcome> attackerTurn = simulateAttack(
-                new BattleOutcome(maxHpAttacker, maxHpDefender, 100, new ArrayList<>()),
-                hitRateAttacker, critRateAttacker, damageAttacker, attackerBrave, true);
+                new BattleOutcome(attackerStats.hitpoints, defenderStats.hitpoints, 100, new ArrayList<>()),
+                attackerStats, defenderStats, hitRateAttacker, critRateAttacker, damageAttacker, attackerBrave, true);
         // End battle if defender dies, otherwise second attack
         List<BattleOutcome> defenderTurn = new ArrayList<>();
         for (BattleOutcome outcome : attackerTurn) {
             if (outcome.hpDefender == 0) {
                 outcomes.add(outcome);
             } else {
-                defenderTurn.addAll(simulateAttack(outcome, hitRateDefender, critRateDefender, damageDefender, defenderBrave, false));
+                defenderTurn.addAll(simulateAttack(outcome, attackerStats, defenderStats, hitRateDefender, critRateDefender, damageDefender, defenderBrave, false));
             }
         }
         // End of battle if attacker dies, otherwise check for follow-up
@@ -251,10 +260,10 @@ public class BattleForecastPanel extends JPanel {
                 outcomes.add(outcome);
             } else {
                 if (attackerDoubles) {
-                    outcomes.addAll(simulateAttack(outcome, hitRateAttacker, critRateAttacker, damageAttacker, attackerBrave, true));
+                    outcomes.addAll(simulateAttack(outcome, attackerStats, defenderStats, hitRateAttacker, critRateAttacker, damageAttacker, attackerBrave, true));
                 }
                 else if (defenderDoubles) {
-                    outcomes.addAll(simulateAttack(outcome, hitRateDefender, critRateDefender, damageDefender, defenderBrave, false));
+                    outcomes.addAll(simulateAttack(outcome, attackerStats, defenderStats, hitRateDefender, critRateDefender, damageDefender, defenderBrave, false));
                 } else {
                     outcomes.add(outcome);
                 }
@@ -263,7 +272,7 @@ public class BattleForecastPanel extends JPanel {
         return outcomes;
     }
 
-    private List<BattleOutcome> simulateAttack(BattleOutcome origin, int hitRate, int critRate, int damage, boolean braveAttack, boolean attacker) {
+    private List<BattleOutcome> simulateAttack(BattleOutcome origin, Stats attackerStats, Stats defenderStats, int hitRate, int critRate, int damage, boolean braveAttack, boolean attacker) {
         List<BattleOutcome> outcomes = new ArrayList<>();
         QuadriFunction<BattleOutcome, Integer, Float, BattleLog, BattleOutcome> nextOutcome =
                 attacker ? BattleOutcome::damageDefender : BattleOutcome::damageAttacker;
@@ -284,7 +293,7 @@ public class BattleForecastPanel extends JPanel {
         // Brave weapon
         if (braveAttack) {
             outcomes = outcomes.stream().flatMap(outcome ->
-                    simulateAttack(outcome, hitRate, critRate, damage, false, attacker).stream()
+                    simulateAttack(outcome, attackerStats, defenderStats, hitRate, critRate, damage, false, attacker).stream()
             ).toList();
         }
         return outcomes;
@@ -304,6 +313,7 @@ public class BattleForecastPanel extends JPanel {
         }
     }
 
+    // TODO builder
     record BattleLog(boolean attacker, int damage, boolean miss, boolean crit, Skill attackerSkill, Skill defenderSkill) {
         public BattleLog(boolean attacker, int damage, boolean miss, boolean crit, Skill attackerSkill, Skill defenderSkill) {
             this.attacker = attacker;
