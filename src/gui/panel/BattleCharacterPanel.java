@@ -2,23 +2,26 @@ package gui.panel;
 
 import gui.dumb.BorderedLabeledComboBox;
 import gui.dumb.BorderedLabeledSpinner;
+import gui.dumb.BorderedMenu;
 import init.Main;
 import model.Affinity;
 import model.FECharacter;
 import model.FEClass;
 import model.FEWeapon;
+import model.Skill;
 import model.Stats;
 import model.Stats.Stat;
 import model.Support;
 import model.SupportRank;
 import utils.ClassUtils;
 
-import javax.swing.BoxLayout;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SpinnerNumberModel;
+import javax.swing.*;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class BattleCharacterPanel extends CohesivePanel<FECharacter> {
     private BorderedLabeledSpinner levelField;
@@ -26,9 +29,12 @@ public class BattleCharacterPanel extends CohesivePanel<FECharacter> {
     private BorderedLabeledComboBox<FEWeapon> weaponField;
     private BorderedLabeledComboBox<SupportRank> supportRankField;
     private BorderedLabeledComboBox<Affinity> supportAffinityField;
+    private BorderedMenu skillsMenu;
 
     private JPanel editableStatsPanel;
     private Map<Stat, BorderedLabeledSpinner> statFields;
+
+    private final List<Skill> characterSkills = new ArrayList<>();
 
     public BattleCharacterPanel() {
         super(1, 2, 0, 0);
@@ -45,6 +51,13 @@ public class BattleCharacterPanel extends CohesivePanel<FECharacter> {
         weaponField = new BorderedLabeledComboBox<>("Weapon:", weaponOptions, weaponOptions[0]);
         supportRankField = new BorderedLabeledComboBox<>("Rank:", SupportRank.values(), SupportRank.None);
         supportAffinityField = new BorderedLabeledComboBox<>("Affinity:", Affinity.values(), Affinity.Light);
+
+        skillsMenu = new BorderedMenu("Skills");
+        for (Skill skill : Skill.values()) {
+            if (skill != Skill.None) {
+                skillsMenu.add(new JCheckBoxMenuItem(skill.name()));
+            }
+        }
 
         JPanel supportPanel = new JPanel();
         supportPanel.setLayout(new BoxLayout(supportPanel, BoxLayout.Y_AXIS));
@@ -64,6 +77,7 @@ public class BattleCharacterPanel extends CohesivePanel<FECharacter> {
         metadataPanel.add(levelField);
         metadataPanel.add(weaponField);
         metadataPanel.add(supportPanel);
+        metadataPanel.add(skillsMenu);
         add(metadataPanel);
 
         editableStatsPanel = new JPanel();
@@ -76,6 +90,16 @@ public class BattleCharacterPanel extends CohesivePanel<FECharacter> {
     protected void tieActionListeners(FECharacter display) {
         levelField.addChangeListener(() -> actualizeStats(display), false);
         classField.addActionListener(() -> actualizeStats(display), false);
+
+        for (JCheckBoxMenuItem skillCheckBox : skillsMenu.getCheckBoxes()) {
+            skillCheckBox.addActionListener(ignored -> {
+                if (skillCheckBox.isSelected()) {
+                    characterSkills.add(Skill.valueOf(skillCheckBox.getName()));
+                } else {
+                    characterSkills.remove(Skill.valueOf(skillCheckBox.getName()));
+                }
+            });
+        }
     }
 
     public FEClass feClass() {
@@ -96,6 +120,15 @@ public class BattleCharacterPanel extends CohesivePanel<FECharacter> {
             stats.set(stat, (int) statFields.get(stat).inner.getValue());
         }
         return stats;
+    }
+
+    public Set<Skill> skills() {
+        Set<Skill> skills = new HashSet<>(characterSkills);
+        FEWeapon weapon = weapon();
+        if (weapon.skill != Skill.None) {
+            skills.add(weapon.skill);
+        }
+        return skills;
     }
 
     private void actualizeStats(FECharacter display) {

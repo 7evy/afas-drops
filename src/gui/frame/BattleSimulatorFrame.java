@@ -8,6 +8,7 @@ import gui.panel.BattleForecastPanel;
 import init.Main;
 import model.FECharacter;
 import model.Support;
+import utils.BattleSimulation;
 
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
@@ -40,7 +41,7 @@ public class BattleSimulatorFrame extends JFrame {
         attackerPanel.pad(BorderLayout.WEST);
         JPanel attackerLayout = new JPanel();
         attackerLayout.setLayout(new BoxLayout(attackerLayout, BoxLayout.Y_AXIS));
-        characterLeft = new BorderedLabeledComboBox<>("Attacker:", characters, characters[0]);
+        characterLeft = new BorderedLabeledComboBox<>("Initiator:", characters, characters[0]);
         characterLeft.addActionListener(() ->
                 characterPanelLeft.refresh(characterLeft.getSelectedItem()), false);
         attackerLayout.add(characterLeft);
@@ -51,7 +52,7 @@ public class BattleSimulatorFrame extends JFrame {
         defenderPanel.pad(BorderLayout.EAST);
         JPanel defenderLayout = new JPanel();
         defenderLayout.setLayout(new BoxLayout(defenderLayout, BoxLayout.Y_AXIS));
-        characterRight = new BorderedLabeledComboBox<>("Defender:", characters, characters[0]);
+        characterRight = new BorderedLabeledComboBox<>("Retaliator:", characters, characters[0]);
         characterRight.addActionListener(() ->
                 characterPanelRight.refresh(characterRight.getSelectedItem()), false);
         defenderLayout.add(characterRight);
@@ -81,9 +82,12 @@ public class BattleSimulatorFrame extends JFrame {
     private void launchSimulation() {
         Support attackerSupport = characterPanelLeft.support(characterLeft.getSelectedItem().affinity);
         Support defenderSupport = characterPanelRight.support(characterRight.getSelectedItem().affinity);
-        battleForecastPanel.refresh(
-                characterPanelLeft.stats(), characterPanelLeft.weapon(), characterPanelLeft.feClass(), attackerSupport.doubledBonus(),
-                characterPanelRight.stats(), characterPanelRight.weapon(), characterPanelRight.feClass(), defenderSupport.doubledBonus()
-        );
+        battleForecastPanel.refresh(BattleSimulation.setUp(
+                characterPanelLeft.stats(), characterPanelRight.stats(),
+                characterPanelLeft.weapon(), characterPanelRight.weapon(),
+                characterPanelLeft.feClass(), characterPanelRight.feClass(),
+                characterPanelLeft.skills(), characterPanelRight.skills(),
+                attackerSupport.doubledBonus(), defenderSupport.doubledBonus()
+        ));
     }
 }

@@ -7,7 +7,9 @@ public enum WeaponEffect {
     TargetsRes("Targets resistance"),
     TargetsDef("Targets defence"),
     Lethal,
-    Silencer;
+    Silencer,
+    Lifesteal,
+    Devil;
 
     public final String displayName;
 
